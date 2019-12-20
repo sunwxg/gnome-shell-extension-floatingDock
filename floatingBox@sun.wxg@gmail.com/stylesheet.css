@@ -1,0 +1,21 @@
+.panel-box {
+    border-radius: 9px 9px 9px 9px;
+}
+.main-button > StWidget {
+  padding: 8px 8px; }
+
+.item-container > StWidget {
+  padding: 8px 8px; }
+.item-container {
+  background-color: #153535; }
+
+.item-container:hover {
+  background-color: #3c3c3c;}
+
+#app-running-dot {
+  background-color: #1b6acb; }
+
+/*.app-running-dot > StWidget {*/
+  /*width: 10px;*/
+  /*height: 3px;*/
+  /*margin-bottom: 2px; }*/
