@@ -87,7 +87,7 @@ var PanelBox = GObject.registerClass({
         this._appSystem.connect('app-state-changed', this._queueRedisplay.bind(this));
 
         //Main.uiGroup.add_child(this);
-        Main.layoutManager.addChrome(this);
+        Main.layoutManager.addChrome(this, { trackFullscreen: true });
     }
 
     _getMainButton() {
