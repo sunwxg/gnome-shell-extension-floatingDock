@@ -1,0 +1,16 @@
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.floatingPanel" path="/org/gnome/shell/extensions/floatingPanel/">
+    <key name="floating-panel-hotkey" type="as">
+      <default><![CDATA[['<Control><Alt>k']]]></default>
+      <summary>Key to trigger panel</summary>
+      <description>
+      </description>
+    </key>
+    <key name="floating-panel-direction" type="s">
+      <default>"up"</default>
+      <summary>Direction</summary>
+      <description>
+      </description>
+    </key>
+  </schema>
+</schemalist>
