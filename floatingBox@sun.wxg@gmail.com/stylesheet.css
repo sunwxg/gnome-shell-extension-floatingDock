@@ -1,21 +1,25 @@
-.panel-box {
-    border-radius: 9px 9px 9px 9px;
+#floating-panel {
 }
-.main-button > StWidget {
+
+#floating-panel .main-button {
   padding: 8px 8px; }
 
-.item-container > StWidget {
-  padding: 8px 8px; }
-.item-container {
+#floating-panel .item-box {
+  border-radius: 9px;
   background-color: #153535; }
 
-.item-container:hover {
+#floating-panel .item-container {
+  margin: 4px 4px 4px 4px; }
+
+#floating-panel .item-container:hover {
+  border-radius: 9px;
   background-color: #3c3c3c;}
 
-#app-running-dot {
+#floating-panel .app-running-dot {
+  height: 3px;
+  width: 15px;
+  margin-bottom: 2px;
   background-color: #1b6acb; }
 
-/*.app-running-dot > StWidget {*/
-  /*width: 10px;*/
-  /*height: 3px;*/
-  /*margin-bottom: 2px; }*/
+#floating-panel .app-button {
+  padding: 4px; }
