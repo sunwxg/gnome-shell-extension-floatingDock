@@ -11,19 +11,24 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const PanelBox = Me.imports.panelBox.PanelBox;
+const Util = Me.imports.util;
 
 const SCHEMA = 'org.gnome.shell.extensions.floatingPanel';
 const HOTKEY = 'floating-panel-hotkey';
 const DIRECTION = 'floating-panel-direction';
 
+var gsettings = null;
+
 class FloatBox {
     constructor() {
         this._gsettings = Convenience.getSettings(SCHEMA);
-        this.direction = this._gsettings.get_string(DIRECTION);
+        gsettings = this._gsettings;
+
+        this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
 
         this.panelBox = new PanelBox(this.direction);
         this.directionID = this._gsettings.connect("changed::" + DIRECTION, () => {
-            this.direction = this._gsettings.get_string(DIRECTION);
+            this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
             this.panelBox.destroy();
             this.panelBox = new PanelBox(this.direction);
         });

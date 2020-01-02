@@ -1,0 +1,94 @@
+const { Clutter, Meta } = imports.gi;
+
+const Main = imports.ui.main;
+const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
+
+var SwitchWorkspace = class SwitchWorkspace {
+    constructor() {
+        this.wm = global.workspace_manager;
+    }
+
+    scrollEvent(actor, event) {
+        let direction;
+        switch (event.get_scroll_direction()) {
+        case Clutter.ScrollDirection.UP:
+            direction = Meta.MotionDirection.UP;
+            break;
+        case Clutter.ScrollDirection.DOWN:
+            direction = Meta.MotionDirection.DOWN;
+            break;
+        default:
+            return Clutter.EVENT_STOP;
+        }
+
+        this.switchAction(direction);
+
+        return Clutter.EVENT_STOP;
+    }
+
+    switchAction(direction) {
+        let ws = this.getWorkSpace();
+
+        let activeIndex = this.wm.get_active_workspace().index();
+
+        let newWs;
+        if (direction == Meta.MotionDirection.UP) {
+            if (activeIndex == 0 )
+                newWs = ws.length - 1;
+            else
+                newWs = activeIndex - 1;
+        } else {
+            if (activeIndex == (ws.length - 1) )
+                newWs = 0;
+            else
+                newWs = activeIndex + 1;
+        }
+
+        this.actionMoveWorkspace(ws[newWs]);
+        this.switcherPopup(direction, ws[newWs]);
+    }
+
+    switcherPopup(direction, newWs) {
+        if (!Main.overview.visible) {
+            if (this._workspaceSwitcherPopup == null) {
+                Main.wm._workspaceTracker.blockUpdates();
+                this._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+                this._workspaceSwitcherPopup.connect('destroy', () => {
+                    Main.wm._workspaceTracker.unblockUpdates();
+                    this._workspaceSwitcherPopup = null;
+                });
+            }
+            this._workspaceSwitcherPopup.display(direction, newWs.index());
+        }
+    }
+
+    getWorkSpace() {
+        let activeWs = this.wm.get_active_workspace();
+
+        let activeIndex = activeWs.index();
+        let ws = [];
+
+        ws[activeIndex] = activeWs;
+
+        for (let i = activeIndex - 1; i >= 0; i--) {
+            ws[i] = ws[i + 1].get_neighbor(Meta.MotionDirection.UP);
+        }
+
+        for (let i = activeIndex + 1; i < this.wm.n_workspaces; i++) {
+            ws[i] = ws[i - 1].get_neighbor(Meta.MotionDirection.DOWN);
+        }
+
+        return ws;
+    }
+
+    actionMoveWorkspace(workspace) {
+        if (!Main.sessionMode.hasWorkspaces)
+            return;
+
+        let activeWorkspace = this.wm.get_active_workspace();
+
+        if (activeWorkspace != workspace)
+            workspace.activate(global.get_current_time());
+    }
+
+};

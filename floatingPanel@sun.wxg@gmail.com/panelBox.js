@@ -7,8 +7,10 @@ const AppFavorites = imports.ui.appFavorites;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const ItemContainer = Me.imports.itemContainer.ItemContainer;
+const SwitchWorkspace = Me.imports.switchWorkspace.SwitchWorkspace;
 const NUMBER_TO_CHAR_UPPERCASE = Me.imports.util.NUMBER_TO_CHAR_UPPERCASE;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
+const Util = Me.imports.util;
 
 var ICON_SIZE = 48;
 var ITEM_ANIMATION_TIME = 1000;
@@ -35,12 +37,12 @@ var PanelBox = GObject.registerClass({
 
         this.direction = direction;
         switch (direction) {
-        case 'up':
-        case 'down':
+        case St.Side.TOP:
+        case St.Side.BOTTOM:
             this.set_vertical(true);
             break;
-        case 'left':
-        case 'right':
+        case St.Side.LEFT:
+        case St.Side.RIGHT:
             this.set_vertical(false);
             break;
         default:
@@ -59,32 +61,37 @@ var PanelBox = GObject.registerClass({
         this._draggable.connect('drag-end', this._onDragEnd.bind(this));
 
         this._mainButton.connect('clicked', this._mainButtonClicked.bind(this));
+        let switchWorkspace = new SwitchWorkspace();
+        this._mainButton.connect('scroll-event', switchWorkspace.scrollEvent.bind(switchWorkspace));
+
         this.add_child(this._mainButton)
+
+        this._label = new St.Label({ style_class: 'dash-label',
+                                     text: 'Press ESC to cancel' });
+        this._label.hide();
+        Main.layoutManager.addChrome(this._label);
+        this.label_actor = this._label;
 
         let [x, y] =global.get_pointer();
         this._x = x;
         this._y = y;
-        this._showApp = false;
 
+        this._showApp = false;
         this._vimMode = false;
 
-        //this._box = new St.BoxLayout ({ style_class: 'item-box',
-                                        //vertical: true });
         this._box = new ItemBox(this.direction);
         switch (direction) {
-        case 'up':
-        case 'left':
+        case St.Side.LEFT:
+        case St.Side.TOP:
             this.insert_child_below(this._box, null);
             break;
-        case 'down':
-        case 'right':
+        case St.Side.BOTTOM:
+        case St.Side.RIGHT:
             this.insert_child_above(this._box, null);
             break;
         default:
             break;
         }
-
-        this.add_child(this._box);
 
         this._workId = Main.initializeDeferredWork(this, this._redisplay.bind(this));
 
@@ -100,8 +107,10 @@ var PanelBox = GObject.registerClass({
 
         this._overViewShownID = Main.overview.connect('showing', () => { this.hide() });
         this._overViewHiddenID = Main.overview.connect('hiding', () => { this.show() });
-        //Main.uiGroup.add_child(this);
-        Main.layoutManager.addChrome(this, { affectsInputRegion: true });
+
+        this._workspaceChangedID = global.workspace_manager.connect('active-workspace-changed',
+                                                                    this.queueRedisplay.bind(this));
+        Main.layoutManager.addChrome(this, { trackFullscreen: true });
     }
 
     _createMainButton() {
@@ -135,17 +144,20 @@ var PanelBox = GObject.registerClass({
         let newHeight = (oldHeight / oldLength) * children.length;
 
         switch (this.direction) {
-        case 'up':
+        case St.Side.TOP:
             this._y = y - (newHeight - oldHeight);
             break;
-        case 'left':
+        case St.Side.LEFT:
             this._x = x - (newWidth - oldWidth);
             break;
-        case 'down':
-        case 'right':
+        case St.Side.BOTTOM:
+        case St.Side.RIGHT:
         default:
             break;
         }
+
+        if (this._showApp)
+            this._sureInWorkArea();
     }
 
     _redisplay() {
@@ -161,7 +173,8 @@ var PanelBox = GObject.registerClass({
         this._getFavorites();
         this._addApps();
 
-        if (this._showApp)
+        if ((oldLength != this._box.get_children().length) &&
+            this._showApp && !this._vimMode)
             this._updatePositionRedisplay(oldLength, oldWidth, oldHeight);
 
         this._showPanel(this._x, this._y);
@@ -183,13 +196,18 @@ var PanelBox = GObject.registerClass({
         this._appSystem = Shell.AppSystem.get_default();
         let running = this._appSystem.get_running();
 
+        running = running.filter(function(app) {
+            return Util.appInActivateWorkspace(app);
+        });
+
         for (let i = 0; i < running.length; i++) {
             if (this._findInBox(running[i]))
                 continue;
 
             let item = new ItemContainer(running[i], this._vimMode, this._itemNumber++);
-            item.child.connect('clicked', this._appButtonClicked.bind(this));
-            item.child.connect('activate-window', this._appButtonClicked.bind(this));
+            //item.child.connect('clicked', this._appButtonClicked.bind(this));
+            //item.child.connect('activate-window', this._appButtonClicked.bind(this));
+            item.child.connect('activate-window', this._activateWindow.bind(this));
 
             this._box.add_child(item);
         }
@@ -200,23 +218,24 @@ var PanelBox = GObject.registerClass({
 
         for (let i in favorites) {
             let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++);
-            item.child.connect('clicked', this._appButtonClicked.bind(this));
-            item.child.connect('activate-window', this._appButtonClicked.bind(this));
+            //item.child.connect('clicked', this._appButtonClicked.bind(this));
+            //item.child.connect('activate-window', this._appButtonClicked.bind(this));
+            item.child.connect('activate-window', this._activateWindow.bind(this));
             this._box.add_child(item);
         }
     }
 
-    _appButtonClicked(button) {
+    //_appButtonClicked(button) {
+        //print("wxg: _appButtonClicked");
         //this._showApp = false;
-        if (this._vimMode) {
-            this._vimMode = false;
-            Main.popModal(this);
-            this._redisplay();
-        }
-
-        //this._box.hide();
         //this._updatePosition('hide');
-        //this.set_position(this._x, this._y);
+    //}
+
+    _activateWindow() {
+        print("wxg: _activateWindow");
+        this._showApp = false;
+        this._updatePosition('hide');
+        this._showPanel(this._x, this._y);
     }
 
     _appItemSelected(number, newWindow) {
@@ -224,10 +243,24 @@ var PanelBox = GObject.registerClass({
         let item = children.find( (element) => {
             return element.number == number;
         });
-        if (item) {
+
+        if (!item)
+            return;
+
+        if (newWindow) {
             item.child.newWindow = newWindow;
-            item.child.emit('clicked', item.child);
+            item.child.leftButtonClicked();
+            //item.child.emit('clicked', item.child);
+        } else {
+            item.child.app.activate();
         }
+
+        this._showApp = false;
+        this._vimMode = false;
+        this._mainButton.set_button_mask(3);
+        Main.popModal(this);
+        this._updatePosition('hide');
+        this._redisplay();
     }
 
     _updatePosition(action) {
@@ -236,21 +269,60 @@ var PanelBox = GObject.registerClass({
         let boxHeight = box.y2 - box.y1;
         let [x, y] = this.get_position();
         switch (this.direction) {
-        case 'up':
+        case St.Side.TOP:
             this._y = y - boxHeight;
             if (action == 'show')
                 this._y = y - boxHeight;
             else
                 this._y = y + boxHeight;
             break;
-        case 'left':
+        case St.Side.LEFT:
             if (action == 'show')
                 this._x = x - boxWidth;
             else
                 this._x = x + boxWidth;
             break;
-        case 'down':
-        case 'right':
+        case St.Side.BOTTOM:
+        case St.Side.RIGHT:
+        default:
+            break;
+        }
+
+        if (action == 'show')
+            this._sureInWorkArea();
+    }
+
+    _sureInWorkArea() {
+        let workspaceManager = global.workspace_manager;
+        let ws = workspaceManager.get_active_workspace();
+        let workArea = ws.get_work_area_all_monitors();
+
+        let box = this._box.get_allocation_box();
+        let mainButton = this._mainButton.get_allocation_box();
+        let width = box.x2 - box.x1 + mainButton.x2 - mainButton.x1;
+        let height = box.y2 - box.y1 + mainButton.y2 - mainButton.y1;
+
+        switch (this.direction) {
+        case St.Side.TOP:
+            this._y = this._y < workArea.y ? workArea.y : this._y;
+            if (this._y + height > workArea.y + workArea.height)
+                this._y = workArea.y + workArea.height - height;
+            break;
+        case St.Side.BOTTOM:
+            if (this._y + height > workArea.y + workArea.height)
+                this._y = workArea.y + workArea.height - height;
+            this._y = this._y < workArea.y ? workArea.y : this._y;
+            break;
+        case St.Side.LEFT:
+            this._x = this._x < workArea.x ? workArea.x : this._x;
+            if (this._x + width > workArea.x + workArea.width)
+                this._x = workArea.x + workArea.width - width;
+            break;
+        case St.Side.RIGHT:
+            if (this._x + width > workArea.x + workArea.width)
+                this._x = workArea.x + workArea.width - width;
+            this._x = this._x < workArea.x ? workArea.x : this._x;
+            break;
         default:
             break;
         }
@@ -261,13 +333,13 @@ var PanelBox = GObject.registerClass({
         if (this._showApp) {
             this._box.show();
             this._updatePosition('show');
+            this._sureInWorkArea();
             //this._boxAnimation();
         } else {
-            this._box.hide();
+            //this._box.hide();
             this._updatePosition('hide');
-        //this.set_position(this._x, this._y);
         }
-        this.set_position(this._x, this._y);
+        this._showPanel(this._x, this._y);
     }
 
     _showPanel(x, y) {
@@ -283,17 +355,49 @@ var PanelBox = GObject.registerClass({
             //this._boxAnimation();
             this._box.hide();
         }
+
+        if (this._vimMode)
+            this._showLabel();
+        else
+            this._label.hide();
+    }
+
+    _showLabel() {
+        this._label.show();
+        let labelHeight = this._label.get_height();
+        let labelWidth = this._label.get_width();
+        let boxWidth = this.get_width();
+        let boxHeight = this.get_height();
+
+        let x, y;
+        switch (this.direction) {
+        case St.Side.TOP:
+        case St.Side.BOTTOM:
+            x = this._x - labelWidth;
+            if (x < 0)
+                x = this._x + boxWidth;
+            y = this._y;
+            break;
+        case St.Side.RIGHT:
+        case St.Side.LEFT:
+            x = this._x;
+            y = this._y - labelHeight;
+            if (y < 0)
+                y = this._y + boxHeight;
+            break;
+        default:
+            break;
+        }
+        this._label.set_position(x, y);
     }
 
     showItem() {
         this._vimMode = true;
-        if (this._showApp) {
-            this._showApp = true;
-        } else {
+        this._mainButton.set_button_mask(0);
+        if (!this._showApp) {
             this._showApp = true;
             this._box.show();
             this._updatePosition('show');
-            this.set_position(this._x, this._y);
         }
         Main.queueDeferredWork(this._workId);
 
@@ -306,10 +410,9 @@ var PanelBox = GObject.registerClass({
             Main.popModal(this);
             this._showApp = false;
             this._vimMode = false;
-            this._redisplay();
-            this._box.hide();
+            this._mainButton.set_button_mask(3);
             this._updatePosition('hide');
-            this.set_position(this._x, this._y);
+            this._redisplay();
             return Clutter.EVENT_STOP;
         }
 
@@ -350,25 +453,27 @@ var PanelBox = GObject.registerClass({
     }
 
     queueRedisplay() {
+        print("wxg: queueRedisplay");
         this._vimMode = false;
+        this._mainButton.set_button_mask(3);
         Main.queueDeferredWork(this._workId);
     }
 
     _onDragMotion(dropEvent) {
         let lastX, lastY;
         switch (this.direction) {
-        case 'up':
+        case St.Side.TOP:
             [lastX, lastY] = this._mainButton.get_position();
             this._x = dropEvent.dragActor.x;
             this._y = dropEvent.dragActor.y - lastY;
             break;
-        case 'left':
+        case St.Side.LEFT:
             [lastX, lastY] = this._mainButton.get_position();
             this._x = dropEvent.dragActor.x - lastX;
             this._y = dropEvent.dragActor.y;
             break;
-        case 'down':
-        case 'right':
+        case St.Side.BOTTOM:
+        case St.Side.RIGHT:
             this._x = dropEvent.dragActor.x;
             this._y = dropEvent.dragActor.y;
         default:
@@ -392,6 +497,11 @@ var PanelBox = GObject.registerClass({
 
     _onDragEnd(_draggable, _time, _snapback) {
         DND.removeDragMonitor(this._dragMonitor);
+
+        if (this._showApp)
+            this._sureInWorkArea();
+        this._showPanel(this._x, this._y);
+        this._updateMenuStyle();
     }
 
     getDragActor() {
@@ -406,12 +516,26 @@ var PanelBox = GObject.registerClass({
         return true;
     }
 
+    _updateMenuStyle() {
+        let children = this._box.get_children();
+        children.forEach( (item) => {
+            let button = item.child;
+            if (button._previewMenu != null) {
+                button._previewMenu.destroy();
+                button._previewMenu = null;
+            }
+        });
+    }
+
     destroy() {
         if (this._overViewShownID)
             Main.overview.disconnect(this._overViewShownID);
         if (this._overViewHiddenID)
             Main.overview.disconnect(this._overViewHiddenID);
+        if (this._workspaceChangedID)
+            global.workspace_manager.disconnect(this._workspaceChangedID);
 
+        Main.layoutManager.removeChrome(this._label);
         Main.layoutManager.removeChrome(this);
     }
 });
@@ -422,12 +546,12 @@ class ItemBox extends St.BoxLayout {
         super._init({ style_class: 'item-box' });
 
         switch (direction) {
-        case 'up':
-        case 'down':
+        case St.Side.TOP:
+        case St.Side.BOTTOM:
             this.set_vertical(true);
             break;
-        case 'left':
-        case 'right':
+        case St.Side.LEFT:
+        case St.Side.RIGHT:
             this.set_vertical(false);
             break;
         default:

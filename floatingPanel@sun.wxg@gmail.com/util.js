@@ -1,4 +1,4 @@
-const { Clutter } = imports.gi;
+const { Clutter, St } = imports.gi;
 
 var NUMBER_TO_CHAR_UPPERCASE = [
 Clutter.KEY_A,
@@ -57,3 +57,39 @@ var NUMBER_TO_CHAR = [
  Clutter.KEY_y,
  Clutter.KEY_z,
 ];
+
+function getPosition(direction) {
+    let StPosition;
+    switch (direction) {
+    case 'up':
+        StPosition = St.Side.TOP;
+        break;
+    case 'down':
+        StPosition = St.Side.BOTTOM;
+        break;
+    case 'left':
+        StPosition = St.Side.LEFT;
+        break;
+    case 'right':
+        StPosition = St.Side.RIGHT;
+        break;
+    default:
+        break;
+    }
+    return StPosition;
+}
+
+function appInActiveWorkspace(app) {
+        let activeWorkspace = global.workspace_manager.get_active_workspace_index();
+        let windows = app.get_windows();
+        for ( let i in windows) {
+            if (windows[i].get_workspace().index() == activeWorkspace)
+                return true;
+        }
+        return false;
+}
+
+function windowInActiveWorkspace(window) {
+        let activeWorkspace = global.workspace_manager.get_active_workspace_index();
+        return window.get_workspace().index() == activeWorkspace;
+}
