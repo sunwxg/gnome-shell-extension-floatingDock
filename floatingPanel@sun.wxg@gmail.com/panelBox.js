@@ -197,7 +197,7 @@ var PanelBox = GObject.registerClass({
         let running = this._appSystem.get_running();
 
         running = running.filter(function(app) {
-            return Util.appInActivateWorkspace(app);
+            return Util.appInActiveWorkspace(app);
         });
 
         for (let i = 0; i < running.length; i++) {
@@ -453,7 +453,6 @@ var PanelBox = GObject.registerClass({
     }
 
     queueRedisplay() {
-        print("wxg: queueRedisplay");
         this._vimMode = false;
         this._mainButton.set_button_mask(3);
         Main.queueDeferredWork(this._workId);
