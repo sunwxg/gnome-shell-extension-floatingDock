@@ -221,7 +221,6 @@ class ItemContainer extends St.Widget {
     }
 
     _updateRunningStyle() {
-        print("wxg: _updateRunningStyle");
         if (this.app.state != Shell.AppState.STOPPED &&
             Util.appInActiveWorkspace(this.app))
             this._dot.show();
