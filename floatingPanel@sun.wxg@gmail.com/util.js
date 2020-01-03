@@ -80,10 +80,9 @@ function getPosition(direction) {
 }
 
 function appInActiveWorkspace(app) {
-        let activeWorkspace = global.workspace_manager.get_active_workspace_index();
         let windows = app.get_windows();
         for ( let i in windows) {
-            if (windows[i].get_workspace().index() == activeWorkspace)
+            if (windowInActiveWorkspace(windows[i]))
                 return true;
         }
         return false;

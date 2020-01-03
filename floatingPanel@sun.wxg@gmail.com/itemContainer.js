@@ -10,23 +10,21 @@ const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 const WindowPreview = Me.imports.windowPreview;
 
-var ICON_SIZE = 48;
+//var ICON_SIZE = 48;
 
 var PanelAppIcon = GObject.registerClass({
 }, class PanelAppIcon extends St.Widget {
-    _init(app, vimMode, number) {
+    _init(app, vimMode, number, iconSize) {
         super._init();
 
         this.app = app;
+        this.iconSize = iconSize;
 
         this._icon = new St.Widget({ layout_manager: new Clutter.BinLayout() });
         this._icon.destroy_all_children();
         this.add_child(this._icon);
 
-        //let gicon = app.app_info.get_icon();
-        //let appicon = new St.Icon({ gicon: gicon,
-                                    //icon_size: ICON_SIZE, });
-        let appicon = this.app.create_icon_texture(ICON_SIZE);
+        let appicon = this.app.create_icon_texture(this.iconSize);
         this._icon.add_child(appicon);
 
         if (vimMode)
@@ -53,31 +51,36 @@ var PanelAppIcon = GObject.registerClass({
         });
         labelBox.add_child(label);
 
-        labelBox.set_size(ICON_SIZE * 0.5, ICON_SIZE * 0.5);
-        box.set_size(ICON_SIZE * 0.5, ICON_SIZE * 0.5);
+        labelBox.set_size(this.iconSize * 0.5, this.iconSize * 0.5);
+        box.set_size(this.iconSize * 0.5, this.iconSize * 0.5);
         return icon;
     }
 
-    _createIcon(iconSize) {
-        return this.app.create_icon_texture(iconSize);
-    }
+    //_createIcon(iconSize) {
+        //return this.app.create_icon_texture(iconSize);
+    //}
 });
 
 var MyAppButton = GObject.registerClass({
     Signals: {
         'activate-window': {},
+        'in-preview': { param_types: [GObject.TYPE_BOOLEAN] },
     },
 }, class MyAppButton extends St.Button {
-    _init(app, vimMode, number) {
+    _init(app, vimMode, number, iconSize) {
         super._init({ label: app.get_name(),
                       style_class: 'app-button',
                       y_align: Clutter.ActorAlign.CENTER,
+                      reactive: vimMode ? false : true,
         });
 
-        this.set_child(new PanelAppIcon(app, vimMode, number));
+        this.set_child(new PanelAppIcon(app, vimMode, number, iconSize));
         this.app = app;
+        this.iconSize = iconSize;
+        this.vimMode = vimMode;
 
         this._previewMenuManager = new PopupMenu.PopupMenuManager(this);
+
         this._previewMenu = null;
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
@@ -85,13 +88,16 @@ var MyAppButton = GObject.registerClass({
     }
 
     vfunc_button_press_event(buttonEvent) {
-        print("wxg: vfunc_button_press_event");
         super.vfunc_button_press_event(buttonEvent);
+
+        //if (this.vimMode)
+            //return Clutter.EVENT_PROPAGATE;
+
         if (buttonEvent.button == 3) {
-            if (this._previewMenu.isOpen)
+            if (this._previewMenu && this._previewMenu.isOpen)
                 return Clutter.EVENT_PROPAGATE;
+
             this._popupMenu();
-                //this._previewMenu.close();
             return Clutter.EVENT_STOP;
         } else if (buttonEvent.button == 1) {
             this.leftButtonClicked();
@@ -110,9 +116,10 @@ var MyAppButton = GObject.registerClass({
                             //(this.app.state != Shell.AppState.RUNNING) &&
             //&& (isCtrlPressed || isMiddleButton);
 
-        if (openNewWindow)
+        if (openNewWindow) {
             this.app.open_new_window(-1);
-        else {
+            this.emit('activate-window');
+        } else {
             //this.app.activate();
             this._showPreviews();
         }
@@ -120,20 +127,11 @@ var MyAppButton = GObject.registerClass({
 
     _showPreviews() {
         if (!this._previewMenu) {
-            this._previewMenu = new WindowPreview.WindowPreviewMenu(this);
+            this._previewMenu = new WindowPreview.WindowPreviewMenu(this, this.iconSize);
+            this._previewMenu.connect('open-state-changed',
+                                      (menu, state) => { this.emit('in-preview', state); });
 
             this._previewMenuManager.addMenu(this._previewMenu, St.Side.LEFT);
-
-            //this._previewMenu.connect('open-state-changed', (menu, isPoppedUp) => {
-                //if (!isPoppedUp)
-                    //this._onMenuPoppedDown();
-            //});
-            //let id = Main.overview.connect('hiding', () => {
-                //this._previewMenu.close();
-            //});
-            //this._previewMenu.actor.connect('destroy', function() {
-                //Main.overview.disconnect(id);
-            //});
         }
 
         if (this._previewMenu.isOpen) {
@@ -152,16 +150,6 @@ var MyAppButton = GObject.registerClass({
             this._menu.connect('activate-window', (menu, window) => {
                 this.activateWindow(window);
             });
-            //this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
-                //if (!isPoppedUp)
-                    //this._onMenuPoppedDown();
-            //});
-            //let id = Main.overview.connect('hiding', () => {
-                //this._menu.close();
-            //});
-            //this.connect('destroy', () => {
-                //Main.overview.disconnect(id);
-            //});
 
             this._menuManager.addMenu(this._menu);
         }
@@ -172,35 +160,45 @@ var MyAppButton = GObject.registerClass({
         return false;
     }
 
+    findPreviewMenu(number) {
+        if (this._previewMenu == null)
+            return null;
+
+        let items = this._previewMenu._menuSection._getMenuItems();
+        let menuItem = items.find( (element) => {
+            print("wxg: element._number=", element._number);
+            return element._number == number;
+        });
+
+        if (menuItem)
+            return menuItem._window;
+
+        return null;
+    }
+
     activateWindow(metaWindow) {
         if (metaWindow)
             Main.activateWindow(metaWindow);
-        //else
-            //Main.overview.hide();
 
         this.emit('activate-window');
-    }
-
-    animateLaunch() {
-        //this.icon.animateZoomOut();
     }
 });
 
 var ItemContainer = GObject.registerClass(
 class ItemContainer extends St.Widget {
-    _init(app, vimMode, number) {
+    _init(app, vimMode, number, iconSize) {
         super._init({ style_class: 'item-container',
                       layout_manager: new Clutter.BinLayout(),
                       x_expand: true,
                       y_expand: true,
-                      reactive: true,
-                      track_hover: true,
+                      reactive: vimMode ? false : true,
+                      track_hover: vimMode ? false : true,
         });
 
         this.app = app;
         this.number = number;
 
-        let button = new MyAppButton(app, vimMode, number);
+        let button = new MyAppButton(app, vimMode, number, iconSize);
 
         this.add_child(button);
         this.child = button;

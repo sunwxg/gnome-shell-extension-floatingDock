@@ -13,12 +13,23 @@ const Convenience = Me.imports.convenience;
 const SCHEMA = 'org.gnome.shell.extensions.floatingPanel';
 const HOTKEY = 'floating-panel-hotkey';
 const DIRECTION = 'floating-panel-direction';
+const ICON_SIZE = 'floating-panel-icon-size';
 
-var DIRECTION_LIST = {
+const DIRECTION_LIST = {
     "up": "up",
     "down": "down",
     "right": "right",
     "left": "left",
+};
+
+const ICON_SIZE_LIST = {
+    128 : '128',
+    96  : '96',
+    64  : '64',
+    48  : '48',
+    32  : '32',
+    24  : '24',
+    16  : '16',
 };
 
 function init() {
@@ -45,7 +56,7 @@ var Frame = class Frame {
 
         //settings_box.add(this.addItemSwitch("<b>Icon list direction</b>", DIRECTION));
         settings_box.add(this.addDirectionCombo());
-
+        settings_box.add(this.addIconSizeCombo());
     }
 
     addDirectionCombo() {
@@ -73,6 +84,36 @@ var Frame = class Frame {
 
         combo.connect('changed', () => {
             this._settings.set_string(DIRECTION, combo.get_active_id());
+        });
+
+        return combo;
+    }
+
+    addIconSizeCombo() {
+        let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
+                                 margin_top: 10,
+                                 margin_left: 20,
+                                 margin_right: 20,
+        });
+        let setting_label = new Gtk.Label({  xalign: 0 });
+        setting_label.set_markup("<b>Icon Size</b>");
+        hbox.pack_start(setting_label, true, true, 0);
+        hbox.add(this.iconSizeCombo());
+
+        return hbox;
+    }
+
+    iconSizeCombo() {
+        let combo = new Gtk.ComboBoxText();
+        combo.set_entry_text_column(0);
+
+        for (let l in ICON_SIZE_LIST) {
+            combo.append(l, ICON_SIZE_LIST[l]);
+        }
+        combo.set_active_id(this._settings.get_int(ICON_SIZE).toString());
+
+        combo.connect('changed', () => {
+            this._settings.set_int(ICON_SIZE, combo.get_active_id());
         });
 
         return combo;
