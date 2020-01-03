@@ -12,5 +12,11 @@
       <description>
       </description>
     </key>
+    <key name="floating-panel-icon-size" type="i">
+      <default>48</default>
+      <summary>Icon Size</summary>
+      <description>
+      </description>
+    </key>
   </schema>
 </schemalist>

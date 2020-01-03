@@ -12,7 +12,7 @@ const NUMBER_TO_CHAR_UPPERCASE = Me.imports.util.NUMBER_TO_CHAR_UPPERCASE;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 
-var ICON_SIZE = 48;
+//var ICON_SIZE = 48;
 var ITEM_ANIMATION_TIME = 1000;
 
 var WINDOW_DND_SIZE = 256;
@@ -29,12 +29,13 @@ var PanelBox = GObject.registerClass({
         'size-changed': {},
     },
 }, class PanelBox extends St.BoxLayout {
-    _init(direction) {
+    _init(direction, iconSize) {
         super._init({ name: 'floating-panel',
                       can_focus: true,
                       reactive: true,
                       x_align: Clutter.ActorAlign.CENTER });
 
+        this.iconSize = iconSize;
         this.direction = direction;
         switch (direction) {
         case St.Side.TOP:
@@ -78,6 +79,8 @@ var PanelBox = GObject.registerClass({
 
         this._showApp = false;
         this._vimMode = false;
+        this._inPreviewMode = false;
+        this._inPreviewButton = null;
 
         this._box = new ItemBox(this.direction);
         switch (direction) {
@@ -117,7 +120,7 @@ var PanelBox = GObject.registerClass({
         let gicon = new Gio.FileIcon({
                     file: Gio.File.new_for_path(Me.path + '/icons/flag.png') });
         let icon = new St.Icon({ gicon: gicon,
-                                 icon_size: ICON_SIZE });
+                                 icon_size: this.iconSize });
 
         let button= new St.Button({ style_class: 'main-button',
                                     child: icon });
@@ -129,7 +132,7 @@ var PanelBox = GObject.registerClass({
         let gicon = new Gio.FileIcon({
                     file: Gio.File.new_for_path(Me.path + '/icons/flag.png') });
         let icon = new St.Icon({ gicon: gicon,
-                                 icon_size: ICON_SIZE });
+                                 icon_size: this.iconSize });
 
         let button= new St.Button({ style_class: 'item-container',
                                     child: icon });
@@ -204,10 +207,13 @@ var PanelBox = GObject.registerClass({
             if (this._findInBox(running[i]))
                 continue;
 
-            let item = new ItemContainer(running[i], this._vimMode, this._itemNumber++);
-            //item.child.connect('clicked', this._appButtonClicked.bind(this));
-            //item.child.connect('activate-window', this._appButtonClicked.bind(this));
+            let item = new ItemContainer(running[i], this._vimMode, this._itemNumber++, this.iconSize);
             item.child.connect('activate-window', this._activateWindow.bind(this));
+            item.child.connect('in-preview', (button, state) => {
+                this._inPreviewMode = state;
+                if (state)
+                    this._inPreviewButton = button;
+            });
 
             this._box.add_child(item);
         }
@@ -217,25 +223,47 @@ var PanelBox = GObject.registerClass({
         let favorites = AppFavorites.getAppFavorites().getFavoriteMap();
 
         for (let i in favorites) {
-            let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++);
-            //item.child.connect('clicked', this._appButtonClicked.bind(this));
-            //item.child.connect('activate-window', this._appButtonClicked.bind(this));
+            let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++, this.iconSize);
             item.child.connect('activate-window', this._activateWindow.bind(this));
+            item.child.connect('in-preview', (button, state) => {
+                this._inPreviewMode = state;
+                if (state)
+                    this._inPreviewButton = button;
+            });
+
             this._box.add_child(item);
         }
     }
-
-    //_appButtonClicked(button) {
-        //print("wxg: _appButtonClicked");
-        //this._showApp = false;
-        //this._updatePosition('hide');
-    //}
 
     _activateWindow() {
         print("wxg: _activateWindow");
         this._showApp = false;
         this._updatePosition('hide');
         this._showPanel(this._x, this._y);
+    }
+
+    _previewSelected(number) {
+        let children = this._box.get_children();
+        let window = null;
+        children.forEach( (element) => {
+            let w = element.child.findPreviewMenu(number);
+            if (w != null)
+                window = w;
+        });
+
+        print("wxg: _previewSelected", window);
+        if (!window)
+            return;
+
+        Main.activateWindow(window);
+
+        this._showApp = false;
+        this._vimMode = false;
+        //this._mainButton.set_button_mask(3);
+        this._mainButton.reactive = true;
+        Main.popModal(this);
+        this._updatePosition('hide');
+        this._redisplay();
     }
 
     _appItemSelected(number, newWindow) {
@@ -247,17 +275,31 @@ var PanelBox = GObject.registerClass({
         if (!item)
             return;
 
-        if (newWindow) {
+        if (newWindow || !Util.appInActiveWorkspace(item.child.app)) {
             item.child.newWindow = newWindow;
-            item.child.leftButtonClicked();
-            //item.child.emit('clicked', item.child);
-        } else {
-            item.child.app.activate();
+            item.child.app.open_new_window(-1);
+
+            this._showApp = false;
+            this._vimMode = false;
+            //this._mainButton.set_button_mask(3);
+            this._mainButton.reactive = true;
+            Main.popModal(this);
+            this._updatePosition('hide');
+            this._redisplay();
+            return;
         }
+
+        if (Util.appInActiveWorkspace(item.child.app)) {
+            this._inPreviewMode = true;
+            item.child._showPreviews();
+            return;
+        }
+
 
         this._showApp = false;
         this._vimMode = false;
-        this._mainButton.set_button_mask(3);
+        //this._mainButton.set_button_mask(3);
+        this._mainButton.reactive = true;
         Main.popModal(this);
         this._updatePosition('hide');
         this._redisplay();
@@ -393,7 +435,8 @@ var PanelBox = GObject.registerClass({
 
     showItem() {
         this._vimMode = true;
-        this._mainButton.set_button_mask(0);
+        //this._mainButton.set_button_mask(0);
+        this._mainButton.reactive = false;
         if (!this._showApp) {
             this._showApp = true;
             this._box.show();
@@ -406,11 +449,19 @@ var PanelBox = GObject.registerClass({
 
     vfunc_key_press_event(keyEvent) {
         let symbol = keyEvent.keyval;
+        print("wxg: key_press_event=", symbol, this._inPreviewMode);
+        if (symbol == Clutter.KEY_Escape && this._inPreviewMode) {
+            this._inPreviewButton._previewMenu.close();
+            return Clutter.EVENT_STOP;
+        }
+
         if (symbol == Clutter.KEY_Escape) {
             Main.popModal(this);
             this._showApp = false;
             this._vimMode = false;
-            this._mainButton.set_button_mask(3);
+            this._inPreviewMode = false;
+            //this._mainButton.set_button_mask(3);
+            this._mainButton.reactive = true;
             this._updatePosition('hide');
             this._redisplay();
             return Clutter.EVENT_STOP;
@@ -419,14 +470,20 @@ var PanelBox = GObject.registerClass({
         let number = NUMBER_TO_CHAR.findIndex( (element) => {
                                                 return element == symbol; });
         if (number >= 0) {
-            this._appItemSelected(number, false);
+            if (this._inPreviewMode)
+                this._previewSelected(number);
+            else
+                this._appItemSelected(number, false);
+
             return Clutter.EVENT_STOP;
         }
 
         number = NUMBER_TO_CHAR_UPPERCASE.findIndex( (element) => {
                                                 return element == symbol; });
-        if (number >= 0)
+        if (number >= 0 && !this._inPreviewMode) {
             this._appItemSelected(number, true);
+            return Clutter.EVENT_STOP;
+        }
 
         return Clutter.EVENT_STOP;
     }
@@ -454,7 +511,8 @@ var PanelBox = GObject.registerClass({
 
     queueRedisplay() {
         this._vimMode = false;
-        this._mainButton.set_button_mask(3);
+        //this._mainButton.set_button_mask(3);
+        this._mainButton.reactive = true;
         Main.queueDeferredWork(this._workId);
     }
 
