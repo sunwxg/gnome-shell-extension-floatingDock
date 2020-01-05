@@ -18,5 +18,13 @@
       <description>
       </description>
     </key>
+    <key name="floating-panel-icon-file" type="s">
+      <default>'/path/to/icon/file'</default>
+      <summary>Icon file</summary>
+      <description>
+        Path to icon file. Note that the backend only supports
+        local (file://) URIs.
+      </description>
+    </key>
   </schema>
 </schemalist>

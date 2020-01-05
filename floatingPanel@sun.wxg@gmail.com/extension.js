@@ -17,6 +17,7 @@ const SCHEMA = 'org.gnome.shell.extensions.floatingPanel';
 const HOTKEY = 'floating-panel-hotkey';
 const DIRECTION = 'floating-panel-direction';
 const ICON_SIZE = 'floating-panel-icon-size';
+const ICON_FILE = 'floating-panel-icon-file';
 
 var gsettings = null;
 
@@ -28,12 +29,12 @@ class FloatBox {
         this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
         this.iconSize = this._gsettings.get_int(ICON_SIZE);
 
-        this.panelBox = new PanelBox(this.direction, this.iconSize);
+        this.panelBox = new PanelBox(this.direction, this.iconSize, this._gsettings);
 
         this.directionID = this._gsettings.connect("changed::" + DIRECTION, () => {
             this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
             this.panelBox.destroy();
-            this.panelBox = new PanelBox(this.direction, this.iconSize);
+            this.panelBox = new PanelBox(this.direction, this.iconSize, this._gsettings);
         });
 
         this.iconsizeID = this._gsettings.connect("changed::" + ICON_SIZE, () => {
@@ -57,6 +58,8 @@ class FloatBox {
     }
 
     destroy() {
+        this._gsettings.disconnect(this.directionID);
+        this._gsettings.disconnect(this.iconsizeID);
         Main.wm.removeKeybinding(HOTKEY);
         this.panelBox.destroy();
     }
