@@ -12,7 +12,8 @@ const NUMBER_TO_CHAR_UPPERCASE = Me.imports.util.NUMBER_TO_CHAR_UPPERCASE;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 
-//var ICON_SIZE = 48;
+const ICON_FILE = 'floating-panel-icon-file';
+
 var ITEM_ANIMATION_TIME = 1000;
 
 var WINDOW_DND_SIZE = 256;
@@ -29,12 +30,13 @@ var PanelBox = GObject.registerClass({
         'size-changed': {},
     },
 }, class PanelBox extends St.BoxLayout {
-    _init(direction, iconSize) {
+    _init(direction, iconSize, settings) {
         super._init({ name: 'floating-panel',
                       can_focus: true,
                       reactive: true,
                       x_align: Clutter.ActorAlign.CENTER });
 
+        this.settings = settings;
         this.iconSize = iconSize;
         this.direction = direction;
         switch (direction) {
@@ -64,6 +66,12 @@ var PanelBox = GObject.registerClass({
         this._mainButton.connect('clicked', this._mainButtonClicked.bind(this));
         let switchWorkspace = new SwitchWorkspace();
         this._mainButton.connect('scroll-event', switchWorkspace.scrollEvent.bind(switchWorkspace));
+
+        this.iconFileID = this.settings.connect("changed::" + ICON_FILE, () => {
+            let icon = new St.Icon({ gicon: this._createButtonIcon(),
+                                     icon_size: this.iconSize });
+            this._mainButton.set_child(icon);
+        });
 
         this.add_child(this._mainButton)
 
@@ -117,9 +125,7 @@ var PanelBox = GObject.registerClass({
     }
 
     _createMainButton() {
-        let gicon = new Gio.FileIcon({
-                    file: Gio.File.new_for_path(Me.path + '/icons/flag.png') });
-        let icon = new St.Icon({ gicon: gicon,
+        let icon = new St.Icon({ gicon: this._createButtonIcon(),
                                  icon_size: this.iconSize });
 
         let button= new St.Button({ style_class: 'main-button',
@@ -128,10 +134,17 @@ var PanelBox = GObject.registerClass({
         return button;
     }
 
+    _createButtonIcon() {
+        let uri = this.settings.get_string(ICON_FILE)
+        let iconFile = Gio.File.new_for_path(uri);
+        if (iconFile == null)
+            iconFile = Gio.File.new_for_path(Me.path + '/icons/flag.png');
+
+        return  new Gio.FileIcon({ file: iconFile });
+    }
+
     _getDragButton() {
-        let gicon = new Gio.FileIcon({
-                    file: Gio.File.new_for_path(Me.path + '/icons/flag.png') });
-        let icon = new St.Icon({ gicon: gicon,
+        let icon = new St.Icon({ gicon: this._createButtonIcon(),
                                  icon_size: this.iconSize });
 
         let button= new St.Button({ style_class: 'item-container',
@@ -591,6 +604,9 @@ var PanelBox = GObject.registerClass({
             Main.overview.disconnect(this._overViewHiddenID);
         if (this._workspaceChangedID)
             global.workspace_manager.disconnect(this._workspaceChangedID);
+
+        if (this.iconFileID)
+            this.settings.disconnect(this.iconFileID);
 
         Main.layoutManager.removeChrome(this._label);
         Main.layoutManager.removeChrome(this);
