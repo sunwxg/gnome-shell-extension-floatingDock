@@ -24,3 +24,14 @@
 #floating-panel .app-button {
   padding: 4px; }
 
+.number-window {
+  text-align: center;
+  font-weight: bold;
+  -st-icon-style: symbolic;
+  spacing: 1em;
+  min-width: 64px;
+  min-height: 64px; }
+
+.number-label {
+ font-size: 20px; }
+ /*font-size: 2.0em; }*/

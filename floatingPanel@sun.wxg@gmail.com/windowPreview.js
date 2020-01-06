@@ -7,13 +7,14 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Util = Me.imports.util;
 const Extension = Me.imports.extension;
+const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
+
 
 const DIRECTION = 'floating-panel-direction';
 
 const PREVIEW_MAX_WIDTH = 250;
 const PREVIEW_MAX_HEIGHT = 150;
-//var ICON_SIZE = 48;
 
 var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
     constructor(source, iconSize) {
@@ -49,7 +50,7 @@ var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
         });
         let k = 0;
         for (let i in windows) {
-            let menuItem = new WindowPreviewMenuItem(windows[i], this._source, k++);
+            let menuItem = new WindowPreviewMenuItem(windows[i], this._source, k++, this.iconSize);
             this._menuSection.addMenuItem(menuItem);
         }
     }
@@ -74,12 +75,13 @@ var WindowPreviewMenuSection = class WindowPreviewMenuSection extends PopupMenu.
 
 var WindowPreviewMenuItem = GObject.registerClass(
 class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
-    _init(window, button, number) {
+    _init(window, button, number, iconSize) {
         super._init({});
 
         this._window = window;
         this._button = button;
         this._number = number;
+        this.iconSize = iconSize;
 
         if (button.vimMode) {
             this.setSensitive(false);
@@ -110,7 +112,7 @@ class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
         this._cloneBox.add_child(this._clone);
 
         if (this._button.vimMode)
-            this._cloneBox.add_child(this._createNumberIcon(this._number));
+            this._cloneBox.add_child(CreateNumberIcon(this._number, this.iconSize));
 
         this._cloneBin.set_child(this._cloneBox);
 
@@ -119,32 +121,6 @@ class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
             this.destroy();
             this._mutterWindowId = 0;
         });
-    }
-
-    _createNumberIcon(number) {
-        print("wxg: number=", number);
-        let icon = new St.Widget({ x_expand: true,
-                                   y_expand: true,
-                                   x_align:  Clutter.ActorAlign.START,
-                                   y_align:  Clutter.ActorAlign.START });
-
-        let box = new St.Widget();
-        icon.add_child(box);
-
-        let labelBox = new St.BoxLayout({ style_class: 'number-window',
-                                          vertical: true });
-        box.add_child(labelBox);
-
-        let label = new St.Label({
-            text: String.fromCharCode(Clutter.keysym_to_unicode(NUMBER_TO_CHAR[number])),
-            x_align:  Clutter.ActorAlign.CENTER,
-            y_align:  Clutter.ActorAlign.START,
-        });
-        labelBox.add_child(label);
-
-        labelBox.set_size(this.iconSize * 0.5, this.iconSize * 0.5);
-        box.set_size(this.iconSize * 0.5, this.iconSize * 0.5);
-        return icon;
     }
 
     vfunc_button_press_event() {

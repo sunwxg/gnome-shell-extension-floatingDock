@@ -40,7 +40,7 @@ class FloatBox {
         this.iconsizeID = this._gsettings.connect("changed::" + ICON_SIZE, () => {
             this.iconSize = this._gsettings.get_int(ICON_SIZE);
             this.panelBox.destroy();
-            this.panelBox = new PanelBox(this.direction, this.iconSize);
+            this.panelBox = new PanelBox(this.direction, this.iconSize, this._gsettings);
         });
 
         this._addKeybinding();
@@ -60,7 +60,7 @@ class FloatBox {
     destroy() {
         this._gsettings.disconnect(this.directionID);
         this._gsettings.disconnect(this.iconsizeID);
-        Main.wm.removeKeybinding(HOTKEY);
+        //Main.wm.removeKeybinding(HOTKEY);
         this.panelBox.destroy();
     }
 }

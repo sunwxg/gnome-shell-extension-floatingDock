@@ -26,5 +26,11 @@
         local (file://) URIs.
       </description>
     </key>
+    <key name="floating-panel-position" type="ai">
+      <default>[30,30]</default>
+      <summary>Panel box postion</summary>
+      <description>
+      </description>
+    </key>
   </schema>
 </schemalist>
