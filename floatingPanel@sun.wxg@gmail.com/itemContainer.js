@@ -3,14 +3,15 @@ const { Clutter, GObject, Shell, St } = imports.gi;
 const PopupMenu = imports.ui.popupMenu;
 const AppDisplay = imports.ui.appDisplay;
 const IconGrid = imports.ui.iconGrid;
+const Main = imports.ui.main;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 const WindowPreview = Me.imports.windowPreview;
-
-//var ICON_SIZE = 48;
+const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
+const NumberIcon = Me.imports.numberIcon.NumberIcon;
 
 var PanelAppIcon = GObject.registerClass({
 }, class PanelAppIcon extends St.Widget {
@@ -28,37 +29,9 @@ var PanelAppIcon = GObject.registerClass({
         this._icon.add_child(appicon);
 
         if (vimMode)
-            this._icon.add_child(this._createNumberIcon(number));
+            //this._icon.add_child(new NumberIcon(number, this.iconSize));
+            this._icon.add_child(CreateNumberIcon(number, this.iconSize));
     }
-
-    _createNumberIcon(number) {
-        let icon = new St.Widget({ x_expand: true,
-                                   y_expand: true,
-                                   x_align:  Clutter.ActorAlign.START,
-                                   y_align:  Clutter.ActorAlign.START });
-
-        let box = new St.Widget();
-        icon.add_child(box);
-
-        let labelBox = new St.BoxLayout({ style_class: 'number-window',
-                                          vertical: true });
-        box.add_child(labelBox);
-
-        let label = new St.Label({
-            text: String.fromCharCode(Clutter.keysym_to_unicode(NUMBER_TO_CHAR[number])),
-            x_align:  Clutter.ActorAlign.CENTER,
-            y_align:  Clutter.ActorAlign.START,
-        });
-        labelBox.add_child(label);
-
-        labelBox.set_size(this.iconSize * 0.5, this.iconSize * 0.5);
-        box.set_size(this.iconSize * 0.5, this.iconSize * 0.5);
-        return icon;
-    }
-
-    //_createIcon(iconSize) {
-        //return this.app.create_icon_texture(iconSize);
-    //}
 });
 
 var MyAppButton = GObject.registerClass({
@@ -80,7 +53,6 @@ var MyAppButton = GObject.registerClass({
         this.vimMode = vimMode;
 
         this._previewMenuManager = new PopupMenu.PopupMenuManager(this);
-
         this._previewMenu = null;
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
@@ -89,9 +61,6 @@ var MyAppButton = GObject.registerClass({
 
     vfunc_button_press_event(buttonEvent) {
         super.vfunc_button_press_event(buttonEvent);
-
-        //if (this.vimMode)
-            //return Clutter.EVENT_PROPAGATE;
 
         if (buttonEvent.button == 3) {
             if (this._previewMenu && this._previewMenu.isOpen)
@@ -107,20 +76,16 @@ var MyAppButton = GObject.registerClass({
     }
 
     leftButtonClicked() {
-        //let event = Clutter.get_current_event();
-        //let modifiers = event ? event.get_state() : 0;
-        //let isMiddleButton = this && this == Clutter.BUTTON_MIDDLE;
-        //let isCtrlPressed = (modifiers & Clutter.ModifierType.CONTROL_MASK) != 0;
         let openNewWindow = this.app.can_open_new_window() &&
                             !Util.appInActiveWorkspace(this.app);
-                            //(this.app.state != Shell.AppState.RUNNING) &&
-            //&& (isCtrlPressed || isMiddleButton);
+        let windows = Util.windowsInActiveWorkspace(this.app);
 
         if (openNewWindow) {
             this.app.open_new_window(-1);
             this.emit('activate-window');
+        } else if (windows.length == 1) {
+            this.activateWindow(windows[0]);
         } else {
-            //this.app.activate();
             this._showPreviews();
         }
     }
@@ -148,8 +113,7 @@ var MyAppButton = GObject.registerClass({
         if (!this._menu) {
             this._menu = new AppDisplay.AppIconMenu(this);
             this._menu.connect('activate-window', (menu, window) => {
-                this.activateWindow(window);
-            });
+                this.activateWindow(window); });
 
             this._menuManager.addMenu(this._menu);
         }
@@ -166,14 +130,15 @@ var MyAppButton = GObject.registerClass({
 
         let items = this._previewMenu._menuSection._getMenuItems();
         let menuItem = items.find( (element) => {
-            print("wxg: element._number=", element._number);
-            return element._number == number;
-        });
+            return element._number == number; });
 
         if (menuItem)
             return menuItem._window;
 
         return null;
+    }
+
+    animateLaunch() {
     }
 
     activateWindow(metaWindow) {

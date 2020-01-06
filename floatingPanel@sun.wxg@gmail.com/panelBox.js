@@ -1,4 +1,4 @@
-const { Clutter, Gio, GObject, Shell, St } = imports.gi;
+const { GLib, Clutter, Gio, GObject, Shell, St } = imports.gi;
 
 const Main = imports.ui.main;
 const DND = imports.ui.dnd;
@@ -13,6 +13,7 @@ const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 
 const ICON_FILE = 'floating-panel-icon-file';
+const PANEL_POSITION = 'floating-panel-position';
 
 var ITEM_ANIMATION_TIME = 1000;
 
@@ -27,7 +28,6 @@ var DragDropResult = {
 
 var PanelBox = GObject.registerClass({
     Signals: {
-        'size-changed': {},
     },
 }, class PanelBox extends St.BoxLayout {
     _init(direction, iconSize, settings) {
@@ -81,7 +81,7 @@ var PanelBox = GObject.registerClass({
         Main.layoutManager.addChrome(this._label);
         this.label_actor = this._label;
 
-        let [x, y] =global.get_pointer();
+        let [x, y] = this.settings.get_value(PANEL_POSITION).deep_unpack();
         this._x = x;
         this._y = y;
 
@@ -136,11 +136,10 @@ var PanelBox = GObject.registerClass({
 
     _createButtonIcon() {
         let uri = this.settings.get_string(ICON_FILE)
-        let iconFile = Gio.File.new_for_path(uri);
-        if (iconFile == null)
-            iconFile = Gio.File.new_for_path(Me.path + '/icons/flag.png');
+        if (!GLib.file_test(uri, GLib.FileTest.EXISTS))
+            uri = Me.path + '/icons/flag.png';
 
-        return  new Gio.FileIcon({ file: iconFile });
+        return  new Gio.FileIcon({ file: Gio.File.new_for_path(uri) });
     }
 
     _getDragButton() {
@@ -249,7 +248,6 @@ var PanelBox = GObject.registerClass({
     }
 
     _activateWindow() {
-        print("wxg: _activateWindow");
         this._showApp = false;
         this._updatePosition('hide');
         this._showPanel(this._x, this._y);
@@ -264,19 +262,11 @@ var PanelBox = GObject.registerClass({
                 window = w;
         });
 
-        print("wxg: _previewSelected", window);
         if (!window)
             return;
 
         Main.activateWindow(window);
-
-        this._showApp = false;
-        this._vimMode = false;
-        //this._mainButton.set_button_mask(3);
-        this._mainButton.reactive = true;
-        Main.popModal(this);
-        this._updatePosition('hide');
-        this._redisplay();
+        this._hideAppList();
     }
 
     _appItemSelected(number, newWindow) {
@@ -291,31 +281,13 @@ var PanelBox = GObject.registerClass({
         if (newWindow || !Util.appInActiveWorkspace(item.child.app)) {
             item.child.newWindow = newWindow;
             item.child.app.open_new_window(-1);
-
-            this._showApp = false;
-            this._vimMode = false;
-            //this._mainButton.set_button_mask(3);
-            this._mainButton.reactive = true;
-            Main.popModal(this);
-            this._updatePosition('hide');
-            this._redisplay();
-            return;
-        }
-
-        if (Util.appInActiveWorkspace(item.child.app)) {
+        }  else if (Util.appInActiveWorkspace(item.child.app)) {
             this._inPreviewMode = true;
             item.child._showPreviews();
             return;
         }
 
-
-        this._showApp = false;
-        this._vimMode = false;
-        //this._mainButton.set_button_mask(3);
-        this._mainButton.reactive = true;
-        Main.popModal(this);
-        this._updatePosition('hide');
-        this._redisplay();
+        this._hideAppList();
     }
 
     _updatePosition(action) {
@@ -389,17 +361,29 @@ var PanelBox = GObject.registerClass({
             this._box.show();
             this._updatePosition('show');
             this._sureInWorkArea();
-            //this._boxAnimation();
         } else {
-            //this._box.hide();
             this._updatePosition('hide');
         }
         this._showPanel(this._x, this._y);
     }
 
+    _hideAppList() {
+            this._showApp = false;
+            this._vimMode = false;
+            this._mainButton.reactive = true;
+            Main.popModal(this);
+            this._updatePosition('hide');
+            this._redisplay();
+    }
+
     _showPanel(x, y) {
+        print("wxg: x y=", x ,y, (new Error()).stack);
         this._x = x;
         this._y = y;
+
+        let mainButton = Shell.util_get_transformed_allocation(this._mainButton);
+        this.settings.set_value(PANEL_POSITION,
+                                new GLib.Variant('ai', [mainButton.x1 ,mainButton.y1]));
 
         this.set_position(this._x, this._y);
 
@@ -448,7 +432,6 @@ var PanelBox = GObject.registerClass({
 
     showItem() {
         this._vimMode = true;
-        //this._mainButton.set_button_mask(0);
         this._mainButton.reactive = false;
         if (!this._showApp) {
             this._showApp = true;
@@ -469,14 +452,8 @@ var PanelBox = GObject.registerClass({
         }
 
         if (symbol == Clutter.KEY_Escape) {
-            Main.popModal(this);
-            this._showApp = false;
-            this._vimMode = false;
             this._inPreviewMode = false;
-            //this._mainButton.set_button_mask(3);
-            this._mainButton.reactive = true;
-            this._updatePosition('hide');
-            this._redisplay();
+            this._hideAppList();
             return Clutter.EVENT_STOP;
         }
 
@@ -524,7 +501,6 @@ var PanelBox = GObject.registerClass({
 
     queueRedisplay() {
         this._vimMode = false;
-        //this._mainButton.set_button_mask(3);
         this._mainButton.reactive = true;
         Main.queueDeferredWork(this._workId);
     }
@@ -550,7 +526,6 @@ var PanelBox = GObject.registerClass({
             break;
         }
 
-        //this._showPanel(dropEvent.dragActor.x, dropEvent.dragActor.y);
         this._showPanel(this._x, this._y);
         return DND.DragMotionResult.CONTINUE;
     }

@@ -92,3 +92,13 @@ function windowInActiveWorkspace(window) {
         let activeWorkspace = global.workspace_manager.get_active_workspace_index();
         return window.get_workspace().index() == activeWorkspace;
 }
+
+function windowsInActiveWorkspace(app) {
+        let current = [];
+        let windows = app.get_windows();
+        for ( let i in windows) {
+            if (windowInActiveWorkspace(windows[i]))
+                current.push(windows[i]);
+        }
+        return current;
+}
