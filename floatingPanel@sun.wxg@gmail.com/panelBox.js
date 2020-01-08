@@ -73,7 +73,7 @@ var PanelBox = GObject.registerClass({
             this._mainButton.set_child(icon);
         });
 
-        this.add_child(this._mainButton)
+        //this.add_child(this._mainButton)
 
         this._label = new St.Label({ style_class: 'dash-label',
                                      text: 'Press ESC to cancel' });
@@ -82,19 +82,13 @@ var PanelBox = GObject.registerClass({
         this.label_actor = this._label;
 
         let [x, y] = this.settings.get_value(PANEL_POSITION).deep_unpack();
-        //let workspaceManager = global.workspace_manager;
-        //let ws = workspaceManager.get_active_workspace();
-        //let workArea = ws.get_work_area_all_monitors();
-        //if (x < workArea.x || x > workArea.x + workArea.width)
-            //x = workArea.x + workArea.width / 2;
-        //if (y < workArea.y || y > workArea.y + workArea.height)
-            //y = workArea.y + workArea.height / 2;
-        this.x = x;
-        this.y = y;
         this._x = x;
         this._y = y;
         this._mainButtonX = x;
         this._mainButtonY = y;
+        this._mainButton.set_position(x, y);
+        this.x = x;
+        this.y = y;
 
         this._showApp = false;
         this._vimMode = false;
@@ -135,15 +129,14 @@ var PanelBox = GObject.registerClass({
         this._workspaceChangedID = global.workspace_manager.connect('active-workspace-changed',
                                                                     this.queueRedisplay.bind(this));
         Main.layoutManager.addChrome(this, { trackFullscreen: true });
+        Main.layoutManager.addChrome(this._mainButton, { trackFullscreen: true });
     }
 
     _createMainButton() {
         let icon = new St.Icon({ gicon: this._createButtonIcon(),
                                  icon_size: this.iconSize });
-
         let button= new St.Button({ style_class: 'main-button',
                                     child: icon });
-
         return button;
     }
 
@@ -158,34 +151,9 @@ var PanelBox = GObject.registerClass({
     _getDragButton() {
         let icon = new St.Icon({ gicon: this._createButtonIcon(),
                                  icon_size: this.iconSize });
-
         let button= new St.Button({ style_class: 'item-container',
                                     child: icon });
-
         return button;
-    }
-
-    _updatePositionRedisplay(oldLength, oldWidth, oldHeight){
-        let [x, y] = this.get_position();
-        let children = this._box.get_children();
-        let newWidth = (oldWidth / oldLength) * children.length;
-        let newHeight = (oldHeight / oldLength) * children.length;
-
-        switch (this.direction) {
-        case St.Side.TOP:
-            this._y = y - (newHeight - oldHeight);
-            break;
-        case St.Side.LEFT:
-            this._x = x - (newWidth - oldWidth);
-            break;
-        case St.Side.BOTTOM:
-        case St.Side.RIGHT:
-        default:
-            break;
-        }
-
-        //if (this._showApp)
-            //this._sureInWorkArea();
     }
 
     _redisplay() {
@@ -200,10 +168,6 @@ var PanelBox = GObject.registerClass({
         this._itemNumber = 0;
         this._getFavorites();
         this._addApps();
-
-        //if ((oldLength != this._box.get_children().length) &&
-            //this._showApp && !this._vimMode)
-            //this._updatePositionRedisplay(oldLength, oldWidth, oldHeight);
 
         this._showPanel(this._x, this._y, false);
     }
@@ -264,7 +228,6 @@ var PanelBox = GObject.registerClass({
         if (!this._showApp)
             return;
         this._showApp = false;
-        //this._updatePosition('hide');
         this._showPanel(this._x, this._y, true);
     }
 
@@ -310,79 +273,9 @@ var PanelBox = GObject.registerClass({
         this._hideAppList();
     }
 
-    _updatePosition(action) {
-        let box = this._box.get_allocation_box();
-        let boxWidth = box.x2 - box.x1;
-        let boxHeight = box.y2 - box.y1;
-        let [x, y] = this.get_position();
-        switch (this.direction) {
-        case St.Side.TOP:
-            if (action == 'show')
-                this._y = y - boxHeight;
-            else
-                this._y = y + boxHeight;
-            break;
-        case St.Side.LEFT:
-            if (action == 'show')
-                this._x = x - boxWidth;
-            else
-                this._x = x + boxWidth;
-            break;
-        case St.Side.BOTTOM:
-        case St.Side.RIGHT:
-        default:
-            break;
-        }
-
-        //if (action == 'show')
-            //this._sureInWorkArea();
-    }
-
-    //_sureInWorkArea() {
-        //let workspaceManager = global.workspace_manager;
-        //let ws = workspaceManager.get_active_workspace();
-        //let workArea = ws.get_work_area_all_monitors();
-
-        //let box = this._box.get_allocation_box();
-        //let mainButton = this._mainButton.get_allocation_box();
-        //let width = box.x2 - box.x1 + mainButton.x2 - mainButton.x1;
-        //let height = box.y2 - box.y1 + mainButton.y2 - mainButton.y1;
-
-        //switch (this.direction) {
-        //case St.Side.TOP:
-            //this._y = this._y < workArea.y ? workArea.y : this._y;
-            //if (this._y + height > workArea.y + workArea.height)
-                //this._y = workArea.y + workArea.height - height;
-            //break;
-        //case St.Side.BOTTOM:
-            //if (this._y + height > workArea.y + workArea.height)
-                //this._y = workArea.y + workArea.height - height;
-            //this._y = this._y < workArea.y ? workArea.y : this._y;
-            //break;
-        //case St.Side.LEFT:
-            //this._x = this._x < workArea.x ? workArea.x : this._x;
-            //if (this._x + width > workArea.x + workArea.width)
-                //this._x = workArea.x + workArea.width - width;
-            //break;
-        //case St.Side.RIGHT:
-            //if (this._x + width > workArea.x + workArea.width)
-                //this._x = workArea.x + workArea.width - width;
-            //this._x = this._x < workArea.x ? workArea.x : this._x;
-            //break;
-        //default:
-            //break;
-        //}
-    //}
 
     _mainButtonClicked() {
         this._showApp = !this._showApp;
-        if (this._showApp) {
-            this._box.show();
-            //this._updatePosition('show');
-            //this._sureInWorkArea();
-        } else {
-            //this._updatePosition('hide');
-        }
         this._showPanel(this._x, this._y, true);
     }
 
@@ -391,12 +284,10 @@ var PanelBox = GObject.registerClass({
             this._vimMode = false;
             this._mainButton.reactive = true;
             Main.popModal(this);
-            //this._updatePosition('hide');
             this._redisplay();
     }
 
     _showPanel(x, y, animation) {
-        //animation = false;
         this._x = x;
         this._y = y;
 
@@ -406,8 +297,8 @@ var PanelBox = GObject.registerClass({
             this._label.hide();
 
         if (this._showApp) {
-            this.set_position(this._x, this._y);
             this._box.show();
+            this.set_position(this._x, this._y);
 
             if (animation)
                 this._boxAnimationShow();
@@ -415,8 +306,8 @@ var PanelBox = GObject.registerClass({
             if (animation) {
                 this._boxAnimationHide();
             } else {
-                this.set_position(this._x, this._y);
                 this._box.hide();
+                this.set_position(this._x, this._y);
             }
         }
 
@@ -522,7 +413,7 @@ var PanelBox = GObject.registerClass({
             let mainButton = Shell.util_get_transformed_allocation(this._mainButton);
             this.settings.set_value(PANEL_POSITION,
                                 new GLib.Variant('ai', [mainButton.x1 ,mainButton.y1]));
-            print("wxg: set_value x y=", mainButton.x1, mainButton.y1);
+            //print("wxg: set_value x y=", mainButton.x1, mainButton.y1);
 
             return GLib.SOURCE_REMOVE;
         });
@@ -563,7 +454,6 @@ var PanelBox = GObject.registerClass({
         if (!this._showApp) {
             this._showApp = true;
             this._box.show();
-            //this._updatePosition('show');
         }
         Main.queueDeferredWork(this._workId);
 
@@ -578,47 +468,73 @@ var PanelBox = GObject.registerClass({
         let boxWidth = box.x2 - box.x1;
         let boxHeight = box.y2 - box.y1;
 
+        let mainButtonBox = this._mainButton.get_allocation_box();
+        let mainButtonWidth = mainButtonBox.x2 - mainButtonBox.x1;
+        let mainButtonHeight = mainButtonBox.y2 - mainButtonBox.y1;
+
         let x = box.x1;
         let y = box.y1;
 
-        if (box.x1 < workArea.x) {
-            x = workArea.x;
-        } else if (box.x2 > (workArea.x + workArea.width)) {
-            x = workArea.x + workArea.width - boxWidth;
-        }
-
-        if (box.y1 < workArea.y) {
-            y = workArea.y;
-        } else if (box.y2 > (workArea.y + workArea.height)) {
-            y = workArea.y + workArea.height - boxHeight;
-        }
-
         switch (this.direction) {
-            case St.Side.TOP:
-                if (boxHeight > workArea.height)
-                    y = workArea.y + workArea.height - boxHeight;
-                break;
-            case St.Side.BOTTOM:
-                if (boxHeight > workArea.height)
-                    y = workArea.y;
-                break;
-            case St.Side.LEFT:
-                if (boxWidth > workArea.width)
-                    x = workArea.x + workArea.width - boxWidth;
-                break;
-            case St.Side.RIGHT:
-                if (boxWidth > workArea.width)
-                    x = workArea.x;
-            default:
-                break;
+        case St.Side.TOP:
+            if (box.x1 < workArea.x) {
+                x = workArea.x;
+            } else if (box.x2 > (workArea.x + workArea.width)) {
+                x = workArea.x + workArea.width - boxWidth;
+            }
+            if (box.y1 < workArea.y) {
+                y = workArea.y;
+            } else if (box.y2 + mainButtonHeight > (workArea.y + workArea.height)) {
+                y = workArea.y + workArea.height - boxHeight - mainButtonHeight;
+            }
+            this._mainButton.set_position(x, y + boxHeight);
+            break;
+        case St.Side.BOTTOM:
+            if (box.x1 < workArea.x) {
+                x = workArea.x;
+            } else if (box.x2 > (workArea.x + workArea.width)) {
+                x = workArea.x + workArea.width - boxWidth;
+            }
+            if (box.y2 > (workArea.y + workArea.height)) {
+                y = workArea.y + workArea.height - boxHeight;
+            } else if (box.y1 < workArea.y) {
+                y = workArea.y;
+            }
+            this._mainButton.set_position(x, y - mainButtonHeight);
+            break;
+        case St.Side.LEFT:
+            if (box.x1 < workArea.x) {
+                x = workArea.x;
+            } else if (box.x2 + mainButtonWidth > (workArea.x + workArea.width)) {
+                x = workArea.x + workArea.width - boxWidth - mainButtonWidth;
+            }
+            if (box.y1 < workArea.y) {
+                y = workArea.y;
+            } else if (box.y2 + mainButtonHeight > (workArea.y + workArea.height)) {
+                y = workArea.y + workArea.height - boxHeight;
+            }
+            this._mainButton.set_position(x + boxWidth, y);
+            break;
+        case St.Side.RIGHT:
+            if (box.x2 > (workArea.x + workArea.width)) {
+                x = workArea.x + workArea.width - boxWidth;
+            } else if (box.x1 < workArea.x) {
+                x = workArea.x;
+            }
+            if (box.y1 < workArea.y) {
+                y = workArea.y;
+            } else if (box.y2 + mainButtonHeight > (workArea.y + workArea.height)) {
+                y = workArea.y + workArea.height - boxHeight;
+            }
+            this._mainButton.set_position(x - mainButtonWidth, y);
+        default:
+            break;
         }
         box.set_origin(x, y);
     }
 
     vfunc_allocate(box, flags) {
         super.vfunc_allocate(box,flags);
-        if (this._mainButton == null)
-            return;
 
         let boxWidth = box.x2 - box.x1;
         let boxHeight = box.y2 - box.y1;
@@ -630,17 +546,20 @@ var PanelBox = GObject.registerClass({
         let x = box.x1;
         let y = box.y1;
 
-        //print("wxg: y1=", y);
+        //print("wxg: _y y", this._y, this.y, boxHeight);
         if (!this._inDrag) {
             switch (this.direction) {
             case St.Side.TOP:
-                y = this._mainButtonY - (boxHeight - mainButtonHeight);
+                y = this._mainButtonY - boxHeight;
                 break;
             case St.Side.LEFT:
-                x = this._mainButtonX - (boxWidth - mainButtonWidth);
+                x = this._mainButtonX - boxWidth;
                 break;
             case St.Side.BOTTOM:
+                y = this._mainButtonY + mainButtonHeight;
+                break;
             case St.Side.RIGHT:
+                x = this._mainButtonX + mainButtonWidth;
             default:
                 break;
             }
@@ -648,15 +567,32 @@ var PanelBox = GObject.registerClass({
             box.set_origin(x, y);
             this._sureInWorkArea(box);
             this.set_allocation(box, flags);
+        } else {
+            //In drag mode
+            switch (this.direction) {
+            case St.Side.TOP:
+                y = y - boxHeight;
+                break;
+            case St.Side.LEFT:
+                x = x - boxWidth;
+                break;
+            case St.Side.BOTTOM:
+                y = y + mainButtonHeight;
+                break;
+            case St.Side.RIGHT:
+                x = x + mainButtonWidth;
+            default:
+                break;
+            }
+            box.set_origin(x, y);
+            this.set_allocation(box, flags);
         }
 
-        //print("wxg: y3=", y);
-        this._x = box.x1;
-        this._y = box.y1;
+        this._x = x;
+        this._y = y;
 
-        //box.set_origin(x, y);
-        //this.set_allocation(box, flags);
-
+        //print("wxg2: _y y", this._y, this.y);
+        //print("------------");
         let mainButton = Shell.util_get_transformed_allocation(this._mainButton);
         this._mainButtonX = mainButton.x1;
         this._mainButtonY = mainButton.y1;
@@ -664,7 +600,7 @@ var PanelBox = GObject.registerClass({
 
     vfunc_key_press_event(keyEvent) {
         let symbol = keyEvent.keyval;
-        print("wxg: key_press_event=", symbol, this._inPreviewMode);
+        //print("wxg: key_press_event=", symbol, this._inPreviewMode);
         if (symbol == Clutter.KEY_Escape && this._inPreviewMode) {
             this._inPreviewButton._previewMenu.close();
             return Clutter.EVENT_STOP;
@@ -704,33 +640,14 @@ var PanelBox = GObject.registerClass({
     }
 
     _onDragMotion(dropEvent) {
-        let lastX, lastY;
-        switch (this.direction) {
-        case St.Side.TOP:
-            [lastX, lastY] = this._mainButton.get_position();
-            this._x = dropEvent.dragActor.x;
-            this._y = dropEvent.dragActor.y - lastY;
-            break;
-        case St.Side.LEFT:
-            [lastX, lastY] = this._mainButton.get_position();
-            this._x = dropEvent.dragActor.x - lastX;
-            this._y = dropEvent.dragActor.y;
-            break;
-        case St.Side.BOTTOM:
-        case St.Side.RIGHT:
-            this._x = dropEvent.dragActor.x;
-            this._y = dropEvent.dragActor.y;
-        default:
-            break;
-        }
+        this._inDrag = true;
+        this._mainButton.set_position(dropEvent.dragActor.x, dropEvent.dragActor.y);
 
-        //print("wxg: _x _y", this._x, this._y);
-        this._showPanel(this._x, this._y, false);
+        this._showPanel(dropEvent.dragActor.x, dropEvent.dragActor.y, false);
         return DND.DragMotionResult.CONTINUE;
     }
 
     _onDragBegin(_draggable, _time) {
-        this._inDrag = true;
         this._dragMonitor = {
             dragMotion: this._onDragMotion.bind(this),
         };
@@ -745,11 +662,7 @@ var PanelBox = GObject.registerClass({
         this._inDrag = false;
         DND.removeDragMonitor(this._dragMonitor);
 
-        //if (this._showApp)
-            //this._sureInWorkArea();
-        //this._showPanel(this._x, this._y, false);
         this._showPanel(this._x - 1, this._y);
-        //this.set_position(0, 0);
         this._updateMenuStyle();
     }
 
@@ -789,6 +702,8 @@ var PanelBox = GObject.registerClass({
 
         Main.layoutManager.removeChrome(this._label);
         Main.layoutManager.removeChrome(this);
+        Main.layoutManager.removeChrome(this._mainButton);
+        this._mainButton.destroy();
     }
 });
 
