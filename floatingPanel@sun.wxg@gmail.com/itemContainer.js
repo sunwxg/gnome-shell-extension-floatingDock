@@ -11,7 +11,6 @@ const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 const WindowPreview = Me.imports.windowPreview;
 const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
-const NumberIcon = Me.imports.numberIcon.NumberIcon;
 
 var PanelAppIcon = GObject.registerClass({
 }, class PanelAppIcon extends St.Widget {
@@ -29,7 +28,6 @@ var PanelAppIcon = GObject.registerClass({
         this._icon.add_child(appicon);
 
         if (vimMode)
-            //this._icon.add_child(new NumberIcon(number, this.iconSize));
             this._icon.add_child(CreateNumberIcon(number, this.iconSize));
     }
 });
@@ -111,7 +109,7 @@ var MyAppButton = GObject.registerClass({
 
     _popupMenu() {
         if (!this._menu) {
-            this._menu = new AppDisplay.AppIconMenu(this);
+            this._menu = new AppDisplay.AppIconMenu(this.actor);
             this._menu.connect('activate-window', (menu, window) => {
                 this.activateWindow(window); });
 

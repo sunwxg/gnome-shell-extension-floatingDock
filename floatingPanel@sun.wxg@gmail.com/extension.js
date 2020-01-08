@@ -60,7 +60,7 @@ class FloatBox {
     destroy() {
         this._gsettings.disconnect(this.directionID);
         this._gsettings.disconnect(this.iconsizeID);
-        //Main.wm.removeKeybinding(HOTKEY);
+        Main.wm.removeKeybinding(HOTKEY);
         this.panelBox.destroy();
     }
 }
