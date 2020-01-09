@@ -1,9 +1,6 @@
 #floating-panel {
 }
 
-#floating-panel .main-button {
-  padding: 8px 8px; }
-
 #floating-panel .item-box {
   border-radius: 9px;
   background-color: #153535; }
@@ -24,9 +21,13 @@
 #floating-panel .app-button {
   padding: 4px; }
 
-#number-icon {
+#floating-panel-number-icon {
   border-radius: 9px;
   padding: 2px;
   background-color: #eeeeec; }
   /*background-color: #d6d6d1; }*/
   /*background-color: #8e8e80; }*/
+
+#floating-panel-main-button {
+  border-radius: 9px;
+  padding: 8px; }
