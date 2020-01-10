@@ -1,24 +1,24 @@
 <schemalist gettext-domain="gnome-shell-extensions">
-  <schema id="org.gnome.shell.extensions.floatingPanel" path="/org/gnome/shell/extensions/floatingPanel/">
-    <key name="floating-panel-hotkey" type="as">
+  <schema id="org.gnome.shell.extensions.floatingDock" path="/org/gnome/shell/extensions/floatingDock/">
+    <key name="floating-dock-hotkey" type="as">
       <default><![CDATA[['<Control><Alt>k']]]></default>
-      <summary>Key to trigger panel</summary>
+      <summary>Key to trigger dock</summary>
       <description>
       </description>
     </key>
-    <key name="floating-panel-direction" type="s">
+    <key name="floating-dock-direction" type="s">
       <default>"up"</default>
       <summary>Direction</summary>
       <description>
       </description>
     </key>
-    <key name="floating-panel-icon-size" type="i">
+    <key name="floating-dock-icon-size" type="i">
       <default>48</default>
       <summary>Icon Size</summary>
       <description>
       </description>
     </key>
-    <key name="floating-panel-icon-file" type="s">
+    <key name="floating-dock-icon-file" type="s">
       <default>'/path/to/icon/file'</default>
       <summary>Icon file</summary>
       <description>
@@ -26,9 +26,9 @@
         local (file://) URIs.
       </description>
     </key>
-    <key name="floating-panel-position" type="ai">
+    <key name="floating-dock-position" type="ai">
       <default>[30,30]</default>
-      <summary>Panel box postion</summary>
+      <summary>Dock box postion</summary>
       <description>
       </description>
     </key>

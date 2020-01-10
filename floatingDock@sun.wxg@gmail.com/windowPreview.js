@@ -11,7 +11,7 @@ const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 
 
-const DIRECTION = 'floating-panel-direction';
+const DIRECTION = 'floating-dock-direction';
 
 const PREVIEW_MAX_WIDTH = 250;
 const PREVIEW_MAX_HEIGHT = 150;

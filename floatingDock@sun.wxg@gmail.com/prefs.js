@@ -12,11 +12,11 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 
-const SCHEMA = 'org.gnome.shell.extensions.floatingPanel';
-const HOTKEY = 'floating-panel-hotkey';
-const DIRECTION = 'floating-panel-direction';
-const ICON_SIZE = 'floating-panel-icon-size';
-const ICON_FILE = 'floating-panel-icon-file';
+const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
+const HOTKEY = 'floating-dock-hotkey';
+const DIRECTION = 'floating-dock-direction';
+const ICON_SIZE = 'floating-dock-icon-size';
+const ICON_FILE = 'floating-dock-icon-file';
 
 const DIRECTION_LIST = {
     "up": "up",
