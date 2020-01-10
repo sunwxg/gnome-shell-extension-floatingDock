@@ -9,7 +9,7 @@ const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 
 function createNumberIcon(number, iconSize) {
         let icon = new St.Widget({
-            name: 'floating-panel-number-icon',
+            name: 'floating-dock-number-icon',
             layout_manager: new Clutter.BinLayout(),
             x_expand: true,
             y_expand: true,

@@ -1,33 +1,33 @@
-#floating-panel {
+#floating-dock {
 }
 
-#floating-panel .item-box {
+#floating-dock .item-box {
   border-radius: 9px;
   background-color: #153535; }
 
-#floating-panel .item-container {
+#floating-dock .item-container {
   margin: 4px 4px 4px 4px; }
 
-#floating-panel .item-container:hover {
+#floating-dock .item-container:hover {
   border-radius: 9px;
   background-color: #3c3c3c;}
 
-#floating-panel .app-running-dot {
+#floating-dock .app-running-dot {
   height: 3px;
   width: 15px;
   margin-bottom: 2px;
   background-color: #1b6acb; }
 
-#floating-panel .app-button {
+#floating-dock .app-button {
   padding: 4px; }
 
-#floating-panel-number-icon {
+#floating-dock-number-icon {
   border-radius: 9px;
   padding: 2px;
   background-color: #eeeeec; }
   /*background-color: #d6d6d1; }*/
   /*background-color: #8e8e80; }*/
 
-#floating-panel-main-button {
+#floating-dock-main-button {
   border-radius: 9px;
   padding: 8px; }

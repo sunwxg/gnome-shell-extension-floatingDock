@@ -10,14 +10,14 @@ const Main = imports.ui.main;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-const PanelBox = Me.imports.panelBox.PanelBox;
+const DockBox = Me.imports.dockBox.DockBox;
 const Util = Me.imports.util;
 
-const SCHEMA = 'org.gnome.shell.extensions.floatingPanel';
-const HOTKEY = 'floating-panel-hotkey';
-const DIRECTION = 'floating-panel-direction';
-const ICON_SIZE = 'floating-panel-icon-size';
-const ICON_FILE = 'floating-panel-icon-file';
+const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
+const HOTKEY = 'floating-dock-hotkey';
+const DIRECTION = 'floating-dock-direction';
+const ICON_SIZE = 'floating-dock-icon-size';
+const ICON_FILE = 'floating-dock-icon-file';
 
 var gsettings = null;
 
@@ -29,18 +29,18 @@ class FloatBox {
         this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
         this.iconSize = this._gsettings.get_int(ICON_SIZE);
 
-        this.panelBox = new PanelBox(this.direction, this.iconSize, this._gsettings);
+        this.dockBox = new DockBox(this.direction, this.iconSize, this._gsettings);
 
         this.directionID = this._gsettings.connect("changed::" + DIRECTION, () => {
             this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
-            this.panelBox.destroy();
-            this.panelBox = new PanelBox(this.direction, this.iconSize, this._gsettings);
+            this.dockBox.destroy();
+            this.dockBox = new DockBox(this.direction, this.iconSize, this._gsettings);
         });
 
         this.iconsizeID = this._gsettings.connect("changed::" + ICON_SIZE, () => {
             this.iconSize = this._gsettings.get_int(ICON_SIZE);
-            this.panelBox.destroy();
-            this.panelBox = new PanelBox(this.direction, this.iconSize, this._gsettings);
+            this.dockBox.destroy();
+            this.dockBox = new DockBox(this.direction, this.iconSize, this._gsettings);
         });
 
         this._addKeybinding();
@@ -54,14 +54,14 @@ class FloatBox {
                               this._gsettings,
                               Meta.KeyBindingFlags.NONE,
                               ModeType.ALL,
-                              () => { this.panelBox.showItem(); });
+                              () => { this.dockBox.showItem(); });
     }
 
     destroy() {
         this._gsettings.disconnect(this.directionID);
         this._gsettings.disconnect(this.iconsizeID);
         Main.wm.removeKeybinding(HOTKEY);
-        this.panelBox.destroy();
+        this.dockBox.destroy();
     }
 }
 
