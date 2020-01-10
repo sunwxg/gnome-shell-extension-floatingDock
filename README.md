@@ -11,4 +11,8 @@ restart system
 
 https://extensions.gnome.org/extension/
 
+## Hot keys
+
+`Ctrl + Alt + k` go to vi mode
+
 ![screenshot]()
