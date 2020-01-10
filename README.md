@@ -1,4 +1,4 @@
-# gnome-shell-extension-floatingPanel
+# gnome-shell-extension-floatingDock
 
 ## Install
 

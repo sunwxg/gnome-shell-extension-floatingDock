@@ -1,4 +1,4 @@
-PROJECT=floatingPanel@sun.wxg@gmail.com
+PROJECT=floatingDock@sun.wxg@gmail.com
 
 schemas:
 	glib-compile-schemas ${PROJECT}/schemas/
