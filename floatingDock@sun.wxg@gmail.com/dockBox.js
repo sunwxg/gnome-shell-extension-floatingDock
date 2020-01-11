@@ -125,6 +125,24 @@ var DockBox = GObject.registerClass({
         this._overViewHiddenID = Main.overview.connect('hiding', () => {
             this.show();
             this._mainButton.show(); });
+        this._monitorChangedID = Main.layoutManager.connect('monitors-changed', () => {
+            let workspaceManager = global.workspace_manager;
+            let ws = workspaceManager.get_active_workspace();
+            let workArea = ws.get_work_area_all_monitors();
+
+            let mainButtonBox = this._mainButton.get_allocation_box();
+            let mainButtonWidth = mainButtonBox.x2 - mainButtonBox.x1;
+            let mainButtonHeight = mainButtonBox.y2 - mainButtonBox.y1;
+
+            let x = mainButtonBox.x1;
+            let y = mainButtonBox.y1;
+
+            if (mainButtonBox.x2 > workArea.x + workArea.width)
+                x = workArea.x + workArea.width - mainButtonWidth;
+            if (mainButtonBox.y2 > workArea.y + workArea.height)
+                y = workArea.y + workArea.height - mainButtonHeight;
+            this._mainButton.set_position(x, y);
+        });
 
         this._workspaceChangedID = global.workspace_manager.connect('active-workspace-changed',
                                                                     this.queueRedisplay.bind(this));
@@ -476,7 +494,8 @@ var DockBox = GObject.registerClass({
             }
             if (box.y1 < workArea.y) {
                 y = workArea.y;
-            } else if (box.y2 + mainButtonHeight > (workArea.y + workArea.height)) {
+            }
+            if ((boxHeight + mainButtonHeight) > workArea.height) {
                 y = workArea.y + workArea.height - boxHeight - mainButtonHeight;
             }
             this._mainButton.set_position(x, y + boxHeight);
@@ -489,15 +508,17 @@ var DockBox = GObject.registerClass({
             }
             if (box.y2 > (workArea.y + workArea.height)) {
                 y = workArea.y + workArea.height - boxHeight;
-            } else if (box.y1 < workArea.y) {
-                y = workArea.y;
+            }
+            if ((boxHeight + mainButtonHeight) > workArea.height) {
+                y = workArea.y + mainButtonHeight;
             }
             this._mainButton.set_position(x, y - mainButtonHeight);
             break;
         case St.Side.LEFT:
             if (box.x1 < workArea.x) {
                 x = workArea.x;
-            } else if (box.x2 + mainButtonWidth > (workArea.x + workArea.width)) {
+            }
+            if (boxWidth + mainButtonWidth >  workArea.width) {
                 x = workArea.x + workArea.width - boxWidth - mainButtonWidth;
             }
             if (box.y1 < workArea.y) {
@@ -510,8 +531,9 @@ var DockBox = GObject.registerClass({
         case St.Side.RIGHT:
             if (box.x2 > (workArea.x + workArea.width)) {
                 x = workArea.x + workArea.width - boxWidth;
-            } else if (box.x1 < workArea.x) {
-                x = workArea.x;
+            }
+            if (boxWidth + mainButtonWidth >  workArea.width) {
+                x = workArea.x + mainButtonWidth;
             }
             if (box.y1 < workArea.y) {
                 y = workArea.y;
