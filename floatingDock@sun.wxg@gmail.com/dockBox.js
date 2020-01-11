@@ -486,59 +486,63 @@ var DockBox = GObject.registerClass({
 
         switch (this.direction) {
         case St.Side.TOP:
-            if (box.x1 < workArea.x) {
+            if (box.x1 < workArea.x)
                 x = workArea.x;
-            } else if (box.x2 > (workArea.x + workArea.width)) {
+            else if (box.x2 > (workArea.x + workArea.width))
                 x = workArea.x + workArea.width - boxWidth;
-            }
-            if (box.y1 < workArea.y) {
+
+            if (box.y1 < workArea.y)
                 y = workArea.y;
-            }
-            if ((boxHeight + mainButtonHeight) > workArea.height) {
+
+            if ((boxHeight + mainButtonHeight) > workArea.height ||
+                (box.y2 + mainButtonHeight) > (workArea.y + workArea.height))
                 y = workArea.y + workArea.height - boxHeight - mainButtonHeight;
-            }
+
             this._mainButton.set_position(x, y + boxHeight);
             break;
         case St.Side.BOTTOM:
-            if (box.x1 < workArea.x) {
+            if (box.x1 < workArea.x)
                 x = workArea.x;
-            } else if (box.x2 > (workArea.x + workArea.width)) {
+            else if (box.x2 > (workArea.x + workArea.width))
                 x = workArea.x + workArea.width - boxWidth;
-            }
-            if (box.y2 > (workArea.y + workArea.height)) {
+
+            if (box.y2 > (workArea.y + workArea.height))
                 y = workArea.y + workArea.height - boxHeight;
-            }
-            if ((boxHeight + mainButtonHeight) > workArea.height) {
+
+            if ((boxHeight + mainButtonHeight) > workArea.height ||
+                (box.y1 - mainButtonHeight) < workArea.y)
                 y = workArea.y + mainButtonHeight;
-            }
+
             this._mainButton.set_position(x, y - mainButtonHeight);
             break;
         case St.Side.LEFT:
-            if (box.x1 < workArea.x) {
+            if (box.x1 < workArea.x)
                 x = workArea.x;
-            }
-            if (boxWidth + mainButtonWidth >  workArea.width) {
+
+            if (boxWidth + mainButtonWidth >  workArea.width ||
+                box.x1 + boxWidth + mainButtonWidth > workArea.x + workArea.width)
                 x = workArea.x + workArea.width - boxWidth - mainButtonWidth;
-            }
-            if (box.y1 < workArea.y) {
+
+            if (box.y1 < workArea.y)
                 y = workArea.y;
-            } else if (box.y2 > (workArea.y + workArea.height)) {
+            else if (box.y2 > (workArea.y + workArea.height))
                 y = workArea.y + workArea.height - boxHeight;
-            }
+
             this._mainButton.set_position(x + boxWidth, y);
             break;
         case St.Side.RIGHT:
-            if (box.x2 > (workArea.x + workArea.width)) {
+            if (box.x2 > (workArea.x + workArea.width))
                 x = workArea.x + workArea.width - boxWidth;
-            }
-            if (boxWidth + mainButtonWidth >  workArea.width) {
+
+            if (boxWidth + mainButtonWidth >  workArea.width ||
+                box.x1 - mainButtonWidth < workArea.x)
                 x = workArea.x + mainButtonWidth;
-            }
-            if (box.y1 < workArea.y) {
+
+            if (box.y1 < workArea.y)
                 y = workArea.y;
-            } else if (box.y2 > (workArea.y + workArea.height)) {
+            else if (box.y2 > (workArea.y + workArea.height))
                 y = workArea.y + workArea.height - boxHeight;
-            }
+
             this._mainButton.set_position(x - mainButtonWidth, y);
         default:
             break;
