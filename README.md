@@ -2,8 +2,12 @@
 
 Move dock anywhere on the desktop.
 
-* Hot keys
-> `Ctrl + Alt + k` go to vi mode
+* Vi mode
+> Hot key `Ctrl + Alt + k` go to vi mode
+
+> Press lowercase alphabet, open new window or active the window.
+
+> Press uppercase alphabet, force to open new window.
 
 * Point on the main button, change workspace by mouse scroll
 
