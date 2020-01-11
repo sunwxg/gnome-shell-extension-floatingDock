@@ -424,7 +424,6 @@ var DockBox = GObject.registerClass({
             let mainButton = Shell.util_get_transformed_allocation(this._mainButton);
             this.settings.set_value(DOCK_POSITION,
                                 new GLib.Variant('ai', [mainButton.x1 ,mainButton.y1]));
-            print("wxg: set_value x y=", mainButton.x1, mainButton.y1);
 
             return GLib.SOURCE_REMOVE;
         });
@@ -560,7 +559,6 @@ var DockBox = GObject.registerClass({
         let x = box.x1;
         let y = box.y1;
 
-        //print("wxg: _y y", this._y, this.y, boxHeight);
         switch (this.direction) {
         case St.Side.TOP:
             x = this._mainButtonX;
@@ -589,7 +587,6 @@ var DockBox = GObject.registerClass({
 
     vfunc_key_press_event(keyEvent) {
         let symbol = keyEvent.keyval;
-        //print("wxg: key_press_event=", symbol, this._inPreviewMode);
         if (symbol == Clutter.KEY_Escape && this._inPreviewMode) {
             this._inPreviewButton._previewMenu.close();
             return Clutter.EVENT_STOP;
