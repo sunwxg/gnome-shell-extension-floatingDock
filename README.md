@@ -15,4 +15,4 @@ https://extensions.gnome.org/extension/
 
 `Ctrl + Alt + k` go to vi mode
 
-![screenshot]()
+![screenshot](/screenshot.gif)
