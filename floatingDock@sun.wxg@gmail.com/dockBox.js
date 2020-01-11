@@ -78,8 +78,6 @@ var DockBox = GObject.registerClass({
             this._mainButton.set_child(icon);
         });
 
-        //this.add_child(this._mainButton)
-
         this._label = new St.Label({ style_class: 'dash-label',
                                      text: 'Press ESC to cancel' });
         this._label.hide();
@@ -125,24 +123,7 @@ var DockBox = GObject.registerClass({
         this._overViewHiddenID = Main.overview.connect('hiding', () => {
             this.show();
             this._mainButton.show(); });
-        this._monitorChangedID = Main.layoutManager.connect('monitors-changed', () => {
-            let workspaceManager = global.workspace_manager;
-            let ws = workspaceManager.get_active_workspace();
-            let workArea = ws.get_work_area_all_monitors();
-
-            let mainButtonBox = this._mainButton.get_allocation_box();
-            let mainButtonWidth = mainButtonBox.x2 - mainButtonBox.x1;
-            let mainButtonHeight = mainButtonBox.y2 - mainButtonBox.y1;
-
-            let x = mainButtonBox.x1;
-            let y = mainButtonBox.y1;
-
-            if (mainButtonBox.x2 > workArea.x + workArea.width)
-                x = workArea.x + workArea.width - mainButtonWidth;
-            if (mainButtonBox.y2 > workArea.y + workArea.height)
-                y = workArea.y + workArea.height - mainButtonHeight;
-            this._mainButton.set_position(x, y);
-        });
+        this._monitorChangedID = Main.layoutManager.connect('monitors-changed', this._monitorChanged.bind(this));
 
         this._workspaceChangedID = global.workspace_manager.connect('active-workspace-changed',
                                                                     this.queueRedisplay.bind(this));
@@ -294,11 +275,11 @@ var DockBox = GObject.registerClass({
     }
 
     _hideAppList() {
-            this._showApp = false;
-            this._vimMode = false;
-            this._mainButton.reactive = true;
-            Main.popModal(this);
-            this._redisplay();
+        this._showApp = false;
+        this._vimMode = false;
+        this._mainButton.reactive = true;
+        Main.popModal(this);
+        this._redisplay();
     }
 
     _showDock(animation) {
@@ -467,6 +448,26 @@ var DockBox = GObject.registerClass({
         Main.queueDeferredWork(this._workId);
 
         Main.pushModal(this);
+    }
+
+    _monitorChanged() {
+        let workspaceManager = global.workspace_manager;
+        let ws = workspaceManager.get_active_workspace();
+        let workArea = ws.get_work_area_all_monitors();
+
+        let mainButtonBox = this._mainButton.get_allocation_box();
+        let mainButtonWidth = mainButtonBox.x2 - mainButtonBox.x1;
+        let mainButtonHeight = mainButtonBox.y2 - mainButtonBox.y1;
+
+        let x = mainButtonBox.x1;
+        let y = mainButtonBox.y1;
+
+        if (mainButtonBox.x2 > workArea.x + workArea.width)
+            x = workArea.x + workArea.width - mainButtonWidth;
+        if (mainButtonBox.y2 > workArea.y + workArea.height)
+            y = workArea.y + workArea.height - mainButtonHeight;
+
+        this._mainButton.set_position(x, y);
     }
 
     _sureInWorkArea(box) {
@@ -685,6 +686,8 @@ var DockBox = GObject.registerClass({
             Main.overview.disconnect(this._overViewShownID);
         if (this._overViewHiddenID)
             Main.overview.disconnect(this._overViewHiddenID);
+        if (this._monitorChangedID)
+            Main.layoutManager.disconnect(this._monitorChangedID);
         if (this._workspaceChangedID)
             global.workspace_manager.disconnect(this._workspaceChangedID);
 

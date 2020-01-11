@@ -57,10 +57,8 @@ var Frame = class Frame {
 
         let settings_box = this._builder.get_object('settings_box');
 
-        //settings_box.add(this.addItemSwitch("<b>Icon list direction</b>", DIRECTION));
         settings_box.add(this.addDirectionCombo());
         settings_box.add(this.addIconSizeCombo());
-
         settings_box.add(this.addIconFile());
     }
 
@@ -136,7 +134,8 @@ var Frame = class Frame {
         this.setting_entry = new Gtk.Entry({ hexpand: true, margin_left: 20 });
 
         this.setting_entry.set_text(this._settings.get_string(ICON_FILE));
-        this.setting_entry.connect('changed', (entry) => { this._settings.set_string(ICON_FILE, entry.get_text()); });
+        this.setting_entry.connect('changed', (entry) => {
+            this._settings.set_string(ICON_FILE, entry.get_text()); });
 
         this.fileChooseButton = new Gtk.Button({ margin_left: 5 });
         this.fileChooseButton.set_label("Browse");

@@ -3,7 +3,7 @@
 Move dock anywhere on the desktop.
 
 * Vi mode
-> Hot key `Ctrl + Alt + k` go to vi mode
+> Hot key `Ctrl+Alt+k` go to vi mode
 
 > Press lowercase alphabet, open new window or active the window.
 
