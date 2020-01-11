@@ -136,9 +136,6 @@ var MyAppButton = GObject.registerClass({
         return null;
     }
 
-    animateLaunch() {
-    }
-
     activateWindow(metaWindow) {
         if (metaWindow)
             Main.activateWindow(metaWindow);
