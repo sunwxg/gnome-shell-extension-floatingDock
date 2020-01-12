@@ -144,6 +144,7 @@ var MyAppButton = GObject.registerClass({
     }
 
     animateLaunch() {
+        //Used for Icon button right click
     }
 });
 
