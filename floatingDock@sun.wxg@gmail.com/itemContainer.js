@@ -142,6 +142,9 @@ var MyAppButton = GObject.registerClass({
 
         this.emit('activate-window');
     }
+
+    animateLaunch() {
+    }
 });
 
 var ItemContainer = GObject.registerClass(

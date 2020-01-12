@@ -9,11 +9,11 @@
       <object class="GtkBox" id="settings_box">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
         <property name="margin_left">10</property>
         <property name="margin_right">10</property>
         <property name="margin_top">10</property>
         <property name="margin_bottom">10</property>
+        <property name="orientation">vertical</property>
         <child>
           <placeholder/>
         </child>
@@ -36,16 +36,36 @@
       <object class="GtkBox" id="about_box">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
+        <property name="valign">center</property>
         <property name="margin_left">10</property>
         <property name="margin_right">10</property>
         <property name="margin_top">10</property>
         <property name="margin_bottom">10</property>
+        <property name="orientation">vertical</property>
         <child>
-          <placeholder/>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+						<property name="label" translatable="yes">Xiaoguang Wang</property>
+            <property name="use_markup">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkLinkButton">
+            <property name="label" translatable="yes">github</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="events"/>
+            <property name="halign">center</property>
+            <property name="relief">none</property>
+            <property name="uri">https://github.com/sunwxg/gnome-shell-extension-floatingDock</property>
+          </object>
         </child>
       </object>
       <packing>
