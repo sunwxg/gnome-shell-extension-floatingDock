@@ -299,7 +299,8 @@ var DockBox = GObject.registerClass({
                 this._box.setSlide(1);
                 this._box.ease_property('@layout.slide', 0, {
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    duration: ITEM_ANIMATION_TIME, });
+                    duration: ITEM_ANIMATION_TIME,
+                    onComplete: () => this._box.hide() });
             } else
                 this._box.hide();
         }
