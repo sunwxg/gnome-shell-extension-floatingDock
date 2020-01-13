@@ -660,8 +660,8 @@ var BoxSlideLayout = GObject.registerClass({
             return [minWidth, natWidth];
 
         let children = container.get_children();
-        minWidth = minWidth * Math.round(this._slide * children.length);
-        natWidth = natWidth * Math.round(this._slide * children.length);
+        minWidth = minWidth * this._slide * children.length;
+        natWidth = natWidth * this._slide * children.length;
 
         return [minWidth, natWidth];
     }
@@ -674,8 +674,8 @@ var BoxSlideLayout = GObject.registerClass({
             return [minHeight, natHeight];
 
         let children = container.get_children();
-        minHeight = minHeight * Math.round(this._slide * children.length);
-        natHeight = natHeight * Math.round(this._slide * children.length);
+        minHeight = minHeight * this._slide * children.length;
+        natHeight = natHeight * this._slide * children.length;
 
         return [minHeight, natHeight];
     }
