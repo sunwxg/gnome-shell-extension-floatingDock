@@ -50,6 +50,9 @@ var MyAppButton = GObject.registerClass({
         this.iconSize = iconSize;
         this.vimMode = vimMode;
 
+        this.set_pivot_point(0.5, 0.5);
+        this.connect('notify::hover', this._onHover.bind(this));
+
         this._previewMenuManager = new PopupMenu.PopupMenuManager(this);
         this._previewMenu = null;
 
@@ -105,6 +108,20 @@ var MyAppButton = GObject.registerClass({
         }
 
         return false;
+    }
+
+    _onHover() {
+        let scale;
+        if (this.hover) {
+            scale = 0.8;
+        } else {
+            scale = 1;
+        }
+
+        this.ease({
+            scale_x: scale,
+            scale_y: scale,
+        });
     }
 
     _popupMenu() {
