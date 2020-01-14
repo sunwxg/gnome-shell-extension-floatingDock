@@ -20,6 +20,6 @@ restart system
 
 ### From gnome extensions website
 
-https://extensions.gnome.org/extension/
+https://extensions.gnome.org/extension/2542/floating-dock/
 
 ![screenshot](/screenshot.gif)
