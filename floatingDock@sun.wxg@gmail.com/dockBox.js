@@ -136,8 +136,11 @@ var DockBox = GObject.registerClass({
     }
 
     _createMainButton() {
-        let icon = new St.Icon({ gicon: this._createButtonIcon(),
-                                 icon_size: this.iconSize });
+        let icon = new St.Icon({});
+        Main.initializeDeferredWork(this, () => {
+            icon.gicon = this._createButtonIcon();
+            icon.icon_size = this.iconSize; });
+
         let button= new St.Button({ name: 'floating-dock-main-button',
                                     child: icon });
         return button;
@@ -323,9 +326,9 @@ var DockBox = GObject.registerClass({
             GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
 
-            let mainButton = Shell.util_get_transformed_allocation(this._mainButton);
+            let box = this._mainButton.get_allocation_box();
             this.settings.set_value(DOCK_POSITION,
-                                new GLib.Variant('ai', [mainButton.x1 ,mainButton.y1]));
+                                new GLib.Variant('ai', [box.x1 ,box.y1]));
 
             return GLib.SOURCE_REMOVE;
         });
