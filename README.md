@@ -16,13 +16,15 @@ Move dock anywhere on the desktop.
 * Local install
 
 ```
+git clone https://github.com/sunwxg/gnome-shell-extension-floatingDock.git
+cd gnome-shell-extension-floatingDock
 make install
 ```
 
-restart system
+> restart system
 
 * gnome extensions website
 
-https://extensions.gnome.org/extension/2542/floating-dock/
+> https://extensions.gnome.org/extension/2542/floating-dock/
 
 ![screenshot](/screenshot.gif)
