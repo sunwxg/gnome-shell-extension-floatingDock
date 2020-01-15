@@ -273,9 +273,8 @@ var DockBox = GObject.registerClass({
     }
 
     _mainButtonPress(actor, event) {
-        if (event.get_button() == 3) {
-            print("wxg: right click");
-        }
+        //if (event.get_button() == 3) {
+        //}
         return Clutter.EVENT_PROPAGATE;
     }
 
