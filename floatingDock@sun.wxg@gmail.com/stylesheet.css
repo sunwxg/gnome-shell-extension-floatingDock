@@ -31,3 +31,11 @@
 #floating-dock-main-button {
   border-radius: 9px;
   padding: 8px; }
+
+#floating-dock-around-button {
+  border-radius: 9px;
+  margin: 4px;
+  padding: 4px; }
+
+#floating-dock-around-button:hover {
+  background-color: #3c3c3c;}
