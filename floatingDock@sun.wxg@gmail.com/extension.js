@@ -66,6 +66,7 @@ class FloatBox {
 }
 
 let floatBox;
+let _startupPreparedId = 0;
 
 function init(metadata) {
     let theme = imports.gi.Gtk.IconTheme.get_default();
@@ -73,6 +74,17 @@ function init(metadata) {
 }
 
 function enable() {
+    // wait until the startup process has ended
+    if (Main.layoutManager._startingUp)
+        _startupPreparedId = Main.layoutManager.connect('startup-complete', () => enableFloatBox());
+    else
+        enableFloatBox();
+}
+
+function enableFloatBox() {
+    if (_startupPreparedId)
+        Main.layoutManager.disconnect(_startupPreparedId);
+
     floatBox = new FloatBox();
 }
 
