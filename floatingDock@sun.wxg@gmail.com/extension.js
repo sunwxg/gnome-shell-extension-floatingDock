@@ -21,7 +21,7 @@ const ICON_FILE = 'floating-dock-icon-file';
 
 var gsettings = null;
 
-class FloatBox {
+class FloatDock {
     constructor() {
         this._gsettings = Convenience.getSettings(SCHEMA);
         gsettings = this._gsettings;
@@ -65,7 +65,7 @@ class FloatBox {
     }
 }
 
-let floatBox;
+let floatDock;
 let _startupPreparedId = 0;
 
 function init(metadata) {
@@ -76,19 +76,19 @@ function init(metadata) {
 function enable() {
     // wait until the startup process has ended
     if (Main.layoutManager._startingUp)
-        _startupPreparedId = Main.layoutManager.connect('startup-complete', () => enableFloatBox());
+        _startupPreparedId = Main.layoutManager.connect('startup-complete', () => enableFloatDock());
     else
-        enableFloatBox();
+        enableFloatDock();
 }
 
-function enableFloatBox() {
+function enableFloatDock() {
     if (_startupPreparedId)
         Main.layoutManager.disconnect(_startupPreparedId);
 
-    floatBox = new FloatBox();
+    floatDock = new FloatDock();
 }
 
 function disable() {
-    floatBox.destroy();
-    floatBox = null;
+    floatDock.destroy();
+    floatDock = null;
 }
