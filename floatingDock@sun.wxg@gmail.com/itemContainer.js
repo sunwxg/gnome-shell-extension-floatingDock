@@ -12,8 +12,8 @@ const Util = Me.imports.util;
 const WindowPreview = Me.imports.windowPreview;
 const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
 
-var PanelAppIcon = GObject.registerClass({
-}, class PanelAppIcon extends St.Widget {
+var MyAppIcon = GObject.registerClass({
+}, class MyAppIcon extends St.Widget {
     _init(app, vimMode, number, iconSize) {
         super._init();
 
@@ -45,7 +45,7 @@ var MyAppButton = GObject.registerClass({
                       reactive: vimMode ? false : true,
         });
 
-        this.set_child(new PanelAppIcon(app, vimMode, number, iconSize));
+        this.set_child(new MyAppIcon(app, vimMode, number, iconSize));
         this.app = app;
         this.iconSize = iconSize;
         this.vimMode = vimMode;
