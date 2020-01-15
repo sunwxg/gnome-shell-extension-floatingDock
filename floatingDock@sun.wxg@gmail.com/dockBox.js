@@ -136,11 +136,8 @@ var DockBox = GObject.registerClass({
     }
 
     _createMainButton() {
-        let icon = new St.Icon({});
-        Main.initializeDeferredWork(this, () => {
-            icon.gicon = this._createButtonIcon();
-            icon.icon_size = this.iconSize; });
-
+        let icon = new St.Icon({ gicon: this._createButtonIcon(),
+                                 icon_size: this.iconSize });
         let button= new St.Button({ name: 'floating-dock-main-button',
                                     child: icon });
         return button;
