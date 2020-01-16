@@ -12,7 +12,7 @@ const NUMBER_TO_CHAR_UPPERCASE = Me.imports.util.NUMBER_TO_CHAR_UPPERCASE;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 const ItemBox = Me.imports.itemBox.ItemBox;
-const AroundButton = Me.imports.aroundButton.AroundButton;
+const AroundButtonManager = Me.imports.aroundButton.AroundButtonManager;
 
 const ICON_FILE = 'floating-dock-icon-file';
 const DOCK_POSITION = 'floating-dock-position';
@@ -77,7 +77,6 @@ var DockBox = GObject.registerClass({
         Main.layoutManager.addChrome(this._label);
 
         this._showApp = false;
-        this._showAroundButton = false;
         this._vimMode = false;
         this._inDrag = false;
         this._inPreviewMode = false;
@@ -125,6 +124,7 @@ var DockBox = GObject.registerClass({
         this.connect('show', () => { this._showDock(false); });
 
         this._createAroundButton();
+        this._aroundButtonManager = new AroundButtonManager(this.iconSize, this._mainButton);
 
         Main.layoutManager.addChrome(this._mainButton, { trackFullscreen: true });
         Main.layoutManager.addChrome(this, { trackFullscreen: true });
@@ -168,20 +168,6 @@ var DockBox = GObject.registerClass({
         if (this._mainButton)
             this._mainButton.reactive = true;
         Main.queueDeferredWork(this._workId);
-    }
-
-    _createAroundButton() {
-        let id = 'gnome-control-center.desktop';
-        let appSys = Shell.AppSystem.get_default();
-        let app = appSys.lookup_app(id);
-
-        this._aroundButtons = [];
-        for (let i = 0; i <= 7; i++) {
-            let button = new AroundButton(app, i, this.iconSize, this._mainButton);
-            Main.layoutManager.addChrome(button, { trackFullscreen: true });
-            button.hide();
-            this._aroundButtons[i] = button;
-        }
     }
 
     _findInBox(app) {
@@ -306,13 +292,12 @@ var DockBox = GObject.registerClass({
 
     _mainButtonPress(actor, event) {
         if (event.get_button() == 3) {
-            print("wxg: right click");
-            this._showAroundButton = !this._showAroundButton;
-            if (this._showAroundButton) {
-                this._aroundButtons.forEach( button => { button.showAnimation(); });
-            } else {
-                this._aroundButtons.forEach( button => { button.hideAnimation(); });
+            if (this._showApp) {
+                this._showApp = false;
+                this._redisplay();
             }
+
+            this._aroundButtonManager.popup();
         }
         return Clutter.EVENT_PROPAGATE;
     }
@@ -409,6 +394,9 @@ var DockBox = GObject.registerClass({
             this._showApp = true;
             this.show();
         }
+
+        this._aroundButtonManager.popupClose();
+
         Main.queueDeferredWork(this._workId);
 
         Main.pushModal(this);
@@ -655,10 +643,7 @@ var DockBox = GObject.registerClass({
         if (this.appListID)
             this.settings.disconnect(this.appListID);
 
-        this._aroundButtons.forEach( button => {
-            Main.layoutManager.removeChrome(button);
-            button.destroy();
-        });
+        this._aroundButtonManager.destroy();
         Main.layoutManager.removeChrome(this._label);
         Main.layoutManager.removeChrome(this);
         Main.layoutManager.removeChrome(this._mainButton);
