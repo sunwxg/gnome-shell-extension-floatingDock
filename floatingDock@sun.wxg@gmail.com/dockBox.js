@@ -15,6 +15,8 @@ const ItemBox = Me.imports.itemBox.ItemBox;
 
 const ICON_FILE = 'floating-dock-icon-file';
 const DOCK_POSITION = 'floating-dock-position';
+const APP_LIST = 'floating-dock-app-list';
+const USE_FAVORITES = 'floating-dock-icon-favorites';
 
 var ITEM_ANIMATION_TIME = 200;
 
@@ -88,6 +90,9 @@ var DockBox = GObject.registerClass({
         this._inPreviewButton = null;
         this._timeoutId = 0;
         [this._mainButtonX, this._mainButtonY] = this.settings.get_value(DOCK_POSITION).deep_unpack();
+        this._useFavorites = this.settings.get_boolean(USE_FAVORITES);
+        this._appSystem = Shell.AppSystem.get_default();
+        this._userApps = (this.settings.get_string(APP_LIST)).split(';');
 
         this._box = new ItemBox(this.direction);
         switch (direction) {
@@ -105,7 +110,14 @@ var DockBox = GObject.registerClass({
 
         this._workId = Main.initializeDeferredWork(this, this._redisplay.bind(this));
 
-        this._appSystem = Shell.AppSystem.get_default();
+        this.useFavoritesID = this.settings.connect("changed::" + USE_FAVORITES, () => {
+            this._useFavorites = this.settings.get_boolean(USE_FAVORITES);
+            this.queueRedisplay();
+        });
+        this.appListID = this.settings.connect("changed::" + APP_LIST, () => {
+            this._userApps = (this.settings.get_string(APP_LIST)).split(';');
+            this.queueRedisplay();
+        });
 
         this._appSystem.connect('installed-changed', () => {
             AppFavorites.getAppFavorites().reload();
@@ -153,7 +165,10 @@ var DockBox = GObject.registerClass({
         children.map(actor => { actor.destroy(); });
 
         this._itemNumber = 0;
-        this._getFavorites();
+        if (this._useFavorites)
+            this._getFavorites();
+        else
+            this._addCustomerApp();
         this._addApps();
 
         this._showDock(false);
@@ -179,7 +194,6 @@ var DockBox = GObject.registerClass({
     }
 
     _addApps() {
-        this._appSystem = Shell.AppSystem.get_default();
         let running = this._appSystem.get_running();
 
         running = running.filter(function(app) {
@@ -207,6 +221,21 @@ var DockBox = GObject.registerClass({
 
         for (let i in favorites) {
             let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++, this.iconSize);
+            item.child.connect('activate-window', this._activateWindow.bind(this));
+            item.child.connect('in-preview', (button, state) => {
+                this._inPreviewMode = state;
+                if (state)
+                    this._inPreviewButton = button;
+            });
+
+            this._box.add_child(item);
+        }
+    }
+
+    _addCustomerApp() {
+        for (let i in this._userApps) {
+            let app = this._appSystem.lookup_app(this._userApps[i]);
+            let item = new ItemContainer(app, this._vimMode, this._itemNumber++, this.iconSize);
             item.child.connect('activate-window', this._activateWindow.bind(this));
             item.child.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
@@ -611,6 +640,10 @@ var DockBox = GObject.registerClass({
 
         if (this.iconFileID)
             this.settings.disconnect(this.iconFileID);
+        if (this.useFavoritesID)
+            this.settings.disconnect(this.useFavoritesID);
+        if (this.appListID)
+            this.settings.disconnect(this.appListID);
 
         Main.layoutManager.removeChrome(this._label);
         Main.layoutManager.removeChrome(this);

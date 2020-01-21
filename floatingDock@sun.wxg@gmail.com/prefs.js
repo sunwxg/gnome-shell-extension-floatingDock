@@ -17,6 +17,8 @@ const HOTKEY = 'floating-dock-hotkey';
 const DIRECTION = 'floating-dock-direction';
 const ICON_SIZE = 'floating-dock-icon-size';
 const ICON_FILE = 'floating-dock-icon-file';
+const APP_LIST = 'floating-dock-app-list';
+const USE_FAVORITES = 'floating-dock-icon-favorites';
 
 const DIRECTION_LIST = {
     "up": "up",
@@ -60,6 +62,14 @@ var Frame = class Frame {
         settings_box.add(this.addDirectionCombo());
         settings_box.add(this.addIconSizeCombo());
         settings_box.add(this.addIconFile());
+
+        settings_box.add(this.addItemSwitch('Use system favorites', USE_FAVORITES));
+        this.addBoldTextToBox("User defined application list", settings_box);
+        settings_box.add(new Gtk.HSeparator({margin_bottom: 5,
+                                             margin_left: 20,
+                                             margin_right: 20,
+                                             margin_top: 5}));
+        settings_box.add(this.addAppCustomer());
     }
 
     addDirectionCombo() {
@@ -201,15 +211,153 @@ var Frame = class Frame {
         }
     }
 
+    addAppCustomer() {
+        let appCustomer = this._builder.get_object('app_customer');
+        let appListBox = this._builder.get_object('app_list_box');
+        let addButton = this._builder.get_object('add_app');
+        let deleteButton = this._builder.get_object('delete_app');
+        let appChooseButton = this._builder.get_object('app_chooser_button');
+
+        this.selectedApp = null;
+        this.updateAppChooserButton();
+
+        let apps = (this._settings.get_string(APP_LIST)).split(';');
+        apps.forEach( app => {
+            let row = this.appRow(app);
+            if (row)
+                appListBox.add(row);
+        });
+        appListBox.show_all();
+
+        addButton.connect('clicked', () => {
+            let row = this.appRow(this.selectedApp);
+            if (row) {
+                if (this.addAppToList(this.selectedApp))
+                    appListBox.add(row);
+            }
+            appListBox.show_all();
+        });
+
+        deleteButton.connect('clicked', () => {
+            if (!appListBox.get_activate_on_single_click())
+                return;
+            let row = appListBox.get_selected_row();
+            this.removeAppToList((row.get_children())[0].app);
+            appListBox.remove(row);
+            appListBox.show_all();
+        });
+
+        return appCustomer;
+    }
+
+    removeAppToList(app) {
+        let apps = (this._settings.get_string(APP_LIST)).split(';');
+        let newApps = null;
+        for (let i in apps) {
+            if (apps[i] != app) {
+                if (!newApps)
+                    newApps = apps[i];
+                else
+                    newApps += ';' + apps[i];
+            }
+        }
+
+        if (newApps == null)
+            newApps = '';
+        this._settings.set_string(APP_LIST, newApps);
+    }
+
+    addAppToList(app) {
+        let apps = (this._settings.get_string(APP_LIST)).split(';');
+        for (let i in apps) {
+            if (apps[i] == app)
+                return false;
+        }
+        apps.push(app);
+        let newApps = null;
+        apps.forEach( app => {
+            if (!newApps)
+                newApps = app;
+            else
+                newApps += ';' + app;
+        });
+        this._settings.set_string(APP_LIST, newApps);
+
+        return true;
+    }
+
+    appRow(appId) {
+        let app = null;
+        let apps = Gio.AppInfo.get_all();
+        for (let i in apps) {
+           if (apps[i].get_id() == appId) {
+               app = apps[i];
+               break;
+           }
+        }
+        if (!app)
+            return null;
+
+        let row = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL });
+        let image = new Gtk.Image();
+        let icon = app.get_icon();
+        if (!icon)
+            icon = new Gio.ThemedIcon({ name: "application-x-executable" });
+        image.set_from_gicon(icon, Gtk.IconSize.BUTTON);
+        image.set_pixel_size(32);
+        let label = new Gtk.Label({ margin_left: 10 });
+        label.set_text(app.get_display_name());
+
+        row.add(image);
+        row.add(label);
+        row.app = appId;
+
+        return row;
+    }
+
+    updateAppChooserButton() {
+        let button = this._builder.get_object('app_chooser_button');
+
+        let apps = Gio.AppInfo.get_all();
+        apps.forEach( app => {
+            let icon = app.get_icon();
+            if (!icon)
+                icon = new Gio.ThemedIcon({ name: "application-x-executable" });
+
+            button.append_custom_item(app.get_id(), app.get_name(), icon);
+        });
+
+        button.set_active_custom_item(apps[0].get_id());
+        this.selectedApp = apps[0].get_id();
+
+        button.connect('custom_item_activated', (item, id) => {
+            this.selectedApp = id;
+        });
+    }
+
     addItemSwitch(string, key) {
-        let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL, margin_top: 20});
+        let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
+                                 margin_top: 10,
+                                 margin_left: 20,
+                                 margin_right: 20,
+        });
         let info = new Gtk.Label({xalign: 0});
         info.set_markup(string);
         hbox.pack_start(info, false, false, 0);
 
-        let button = new Gtk.Switch({ active: gsettings.get_boolean(key) });
-        button.connect('notify::active', (button) => { gsettings.set_boolean(key, button.active); });
+        let button = new Gtk.Switch({ active: this._settings.get_boolean(key) });
+        button.connect('notify::active', (button) => { this._settings.set_boolean(key, button.active); });
         hbox.pack_end(button, false, false, 0);
         return hbox;
+    }
+
+    addBoldTextToBox(text, box) {
+        let txt = new Gtk.Label({xalign: 0,
+                                 margin_left: 20,
+                                 margin_right: 20,
+                                 margin_top: 20});
+        txt.set_markup('<b>' + text + '</b>');
+        txt.set_line_wrap(true);
+        box.add(txt);
     }
 };
