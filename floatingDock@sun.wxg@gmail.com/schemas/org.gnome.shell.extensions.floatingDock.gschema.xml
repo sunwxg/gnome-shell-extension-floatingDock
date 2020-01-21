@@ -32,5 +32,17 @@
       <description>
       </description>
     </key>
+    <key name="floating-dock-icon-favorites" type="b">
+      <default>true</default>
+      <summary>Use system favorites</summary>
+      <description>
+      </description>
+    </key>
+    <key name="floating-dock-app-list" type="s">
+      <default>"firefox.desktop"</default>
+      <summary>Customer app list</summary>
+      <description>
+      </description>
+    </key>
   </schema>
 </schemalist>
