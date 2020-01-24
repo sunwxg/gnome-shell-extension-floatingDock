@@ -216,10 +216,29 @@ var Frame = class Frame {
         let appListBox = this._builder.get_object('app_list_box');
         let addButton = this._builder.get_object('add_app');
         let deleteButton = this._builder.get_object('delete_app');
-        let appChooseButton = this._builder.get_object('app_chooser_button');
 
-        this.selectedApp = null;
-        this.updateAppChooserButton();
+
+        let appChooserWindow = this._builder.get_object('app_chooser_window');
+        appChooserWindow.set_transient_for(this.widget.get_parent());
+        addButton.connect('clicked', () => {
+            appChooserWindow.show_all();
+        });
+
+
+        let appChooserWidget = this._builder.get_object('app_chooser_widget');
+        appChooserWidget.connect('application_selected', (actor, app) => {
+            appChooserWindow.hide()
+
+            let name = app.get_filename().split('/');
+            let id = name[name.length - 1];
+
+            let row = this.appRow(id);
+            if (row) {
+                if (this.addAppToList(id))
+                    appListBox.add(row);
+            }
+            appListBox.show_all();
+        });
 
         let apps = (this._settings.get_string(APP_LIST)).split(';');
         apps.forEach( app => {
@@ -228,15 +247,6 @@ var Frame = class Frame {
                 appListBox.add(row);
         });
         appListBox.show_all();
-
-        addButton.connect('clicked', () => {
-            let row = this.appRow(this.selectedApp);
-            if (row) {
-                if (this.addAppToList(this.selectedApp))
-                    appListBox.add(row);
-            }
-            appListBox.show_all();
-        });
 
         deleteButton.connect('clicked', () => {
             if (!appListBox.get_activate_on_single_click())
@@ -315,26 +325,6 @@ var Frame = class Frame {
         return row;
     }
 
-    updateAppChooserButton() {
-        let button = this._builder.get_object('app_chooser_button');
-
-        let apps = Gio.AppInfo.get_all();
-        apps.forEach( app => {
-            let icon = app.get_icon();
-            if (!icon)
-                icon = new Gio.ThemedIcon({ name: "application-x-executable" });
-
-            button.append_custom_item(app.get_id(), app.get_name(), icon);
-        });
-
-        button.set_active_custom_item(apps[0].get_id());
-        this.selectedApp = apps[0].get_id();
-
-        button.connect('custom_item_activated', (item, id) => {
-            this.selectedApp = id;
-        });
-    }
-
     addItemSwitch(string, key) {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
                                  margin_top: 10,
@@ -353,9 +343,9 @@ var Frame = class Frame {
 
     addBoldTextToBox(text, box) {
         let txt = new Gtk.Label({xalign: 0,
-                                 margin_left: 20,
-                                 margin_right: 20,
-                                 margin_top: 20});
+            margin_left: 20,
+            margin_right: 20,
+            margin_top: 20});
         txt.set_markup('<b>' + text + '</b>');
         txt.set_line_wrap(true);
         box.add(txt);
