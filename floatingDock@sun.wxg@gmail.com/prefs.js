@@ -219,8 +219,8 @@ var Frame = class Frame {
 
 
         let appChooserWindow = this._builder.get_object('app_chooser_window');
-        appChooserWindow.set_transient_for(this.widget.get_parent());
         addButton.connect('clicked', () => {
+            appChooserWindow.set_transient_for(this.widget.get_parent());
             appChooserWindow.show_all();
         });
 
