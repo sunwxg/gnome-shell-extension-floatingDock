@@ -226,7 +226,7 @@ var Frame = class Frame {
 
 
         let appChooserWidget = this._builder.get_object('app_chooser_widget');
-        appChooserWidget.connect('application_selected', (actor, app) => {
+        appChooserWidget.connect('application_activated', (actor, app) => {
             appChooserWindow.hide()
 
             let name = app.get_filename().split('/');
