@@ -63,7 +63,7 @@ var Frame = class Frame {
         settings_box.add(this.addIconSizeCombo());
         settings_box.add(this.addIconFile());
 
-        settings_box.add(this.addItemSwitch('Use system favorites', USE_FAVORITES));
+        settings_box.add(this.addItemSwitch('<b>Use system favorites</b>', USE_FAVORITES));
         this.addBoldTextToBox("User defined application list", settings_box);
         settings_box.add(new Gtk.HSeparator({margin_bottom: 5,
                                              margin_left: 20,
