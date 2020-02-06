@@ -49,7 +49,6 @@ var DockBox = GObject.registerClass({
         this._draggable.connect('drag-end', this._onDragEnd.bind(this));
 
         this._mainButton.connect('clicked', this._mainButtonClicked.bind(this));
-        this._mainButton.connect('button-press-event', this._mainButtonPress.bind(this));
 
         let switchWorkspace = new SwitchWorkspace();
         this._mainButton.connect('scroll-event', switchWorkspace.scrollEvent.bind(switchWorkspace));
@@ -277,12 +276,6 @@ var DockBox = GObject.registerClass({
     _mainButtonClicked() {
         this._showApp = !this._showApp;
         this._showDock(true);
-    }
-
-    _mainButtonPress(actor, event) {
-        //if (event.get_button() == 3) {
-        //}
-        return Clutter.EVENT_PROPAGATE;
     }
 
     _hideAppList() {
