@@ -61,19 +61,16 @@ var MyAppButton = GObject.registerClass({
     }
 
     vfunc_button_press_event(buttonEvent) {
-        super.vfunc_button_press_event(buttonEvent);
-
         if (buttonEvent.button == 3) {
             if (this._previewMenu && this._previewMenu.isOpen)
                 return Clutter.EVENT_PROPAGATE;
 
             this._popupMenu();
-            return Clutter.EVENT_STOP;
         } else if (buttonEvent.button == 1) {
             this.leftButtonClicked();
         }
 
-        return Clutter.EVENT_PROPAGATE;
+        return Clutter.EVENT_STOP;
     }
 
     leftButtonClicked() {

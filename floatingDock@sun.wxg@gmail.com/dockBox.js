@@ -36,18 +36,6 @@ var DockBox = GObject.registerClass({
         this.settings = settings;
         this.iconSize = iconSize;
         this.direction = direction;
-        switch (direction) {
-        case St.Side.TOP:
-        case St.Side.BOTTOM:
-            this.set_vertical(true);
-            break;
-        case St.Side.LEFT:
-        case St.Side.RIGHT:
-            this.set_vertical(false);
-            break;
-        default:
-            break;
-        }
 
         this._mainButton = this._createMainButton();
         this._mainButton._delegate = this;
@@ -95,18 +83,7 @@ var DockBox = GObject.registerClass({
         this._userApps = (this.settings.get_string(APP_LIST)).split(';');
 
         this._box = new ItemBox(this.direction);
-        switch (direction) {
-        case St.Side.LEFT:
-        case St.Side.TOP:
-            this.insert_child_below(this._box, null);
-            break;
-        case St.Side.BOTTOM:
-        case St.Side.RIGHT:
-            this.insert_child_above(this._box, null);
-            break;
-        default:
-            break;
-        }
+        this.add_child(this._box);
 
         this._workId = Main.initializeDeferredWork(this, this._redisplay.bind(this));
 
@@ -142,6 +119,7 @@ var DockBox = GObject.registerClass({
         Main.layoutManager.addChrome(this, { trackFullscreen: true });
 
         this._mainButton.set_position(this._mainButtonX, this._mainButtonY);
+        this._monitorChanged();
     }
 
     _createMainButton() {
@@ -317,7 +295,7 @@ var DockBox = GObject.registerClass({
 
     _showDock(animation) {
         if (this._showApp) {
-            this._box.show();
+            this.show();
             this.set_position(this._mainButtonX, this._mainButtonY);
 
             if (animation) {
@@ -335,9 +313,9 @@ var DockBox = GObject.registerClass({
                 this._box.ease_property('@layout.slide', 0, {
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                     duration: ITEM_ANIMATION_TIME,
-                    onComplete: () => this._box.hide() });
+                    onComplete: () => this.hide() });
             } else
-                this._box.hide();
+                this.hide();
         }
 
         if (this._vimMode)
@@ -397,7 +375,7 @@ var DockBox = GObject.registerClass({
         this._mainButton.reactive = false;
         if (!this._showApp) {
             this._showApp = true;
-            this._box.show();
+            this.show();
         }
         Main.queueDeferredWork(this._workId);
 
