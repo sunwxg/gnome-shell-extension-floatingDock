@@ -114,6 +114,8 @@ var DockBox = GObject.registerClass({
         this._workspaceChangedID = global.workspace_manager.connect('active-workspace-changed',
                                                                     this.queueRedisplay.bind(this));
 
+        this.connect('show', () => { this._showDock(); });
+
         Main.layoutManager.addChrome(this._mainButton, { trackFullscreen: true });
         Main.layoutManager.addChrome(this, { trackFullscreen: true });
 
