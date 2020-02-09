@@ -59,6 +59,11 @@ var DockBox = GObject.registerClass({
             this._mainButtonY = box.y1;
         });
 
+        this._mainButton.connect('style-changed', () => {
+            let icon = new St.Icon({ gicon: this._createButtonIcon(),
+                                     icon_size: this.iconSize });
+            this._mainButton.set_child(icon);
+        });
         this.iconFileID = this.settings.connect("changed::" + ICON_FILE, () => {
             let icon = new St.Icon({ gicon: this._createButtonIcon(),
                                      icon_size: this.iconSize });
@@ -114,6 +119,7 @@ var DockBox = GObject.registerClass({
         this._workspaceChangedID = global.workspace_manager.connect('active-workspace-changed',
                                                                     this.queueRedisplay.bind(this));
 
+        this.connect('style-changed', () => { this.queueRedisplay.bind(this) });
         this.connect('show', () => { this._showDock(false); });
 
         Main.layoutManager.addChrome(this._mainButton, { trackFullscreen: true });
