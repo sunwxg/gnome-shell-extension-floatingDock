@@ -3,14 +3,14 @@
 
 #floating-dock .item-box {
   border-radius: 9px;
-  background-color: #153535; }
+  background-color: rgba(46, 52, 54, 0.3); }
 
 #floating-dock .item-container {
   margin: 4px 4px 4px 4px; }
 
 #floating-dock .item-container:hover {
   border-radius: 9px;
-  background-color: #3c3c3c;}
+  background-color: rgba(46, 52, 54, 0.4); }
 
 #floating-dock .app-running-dot {
   height: 3px;
