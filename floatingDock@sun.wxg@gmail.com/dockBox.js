@@ -18,6 +18,7 @@ const ICON_FILE = 'floating-dock-icon-file';
 const DOCK_POSITION = 'floating-dock-position';
 const APP_LIST = 'floating-dock-app-list';
 const USE_FAVORITES = 'floating-dock-icon-favorites';
+const KEEP_OPEN = 'floating-dock-keep-open';
 
 var ITEM_ANIMATION_TIME = 200;
 
@@ -77,7 +78,12 @@ var DockBox = GObject.registerClass({
         this._label.hide();
         Main.layoutManager.addChrome(this._label);
 
-        this._showApp = false;
+        this._keepOpen = this.settings.get_boolean(KEEP_OPEN);
+        this.keepOpenID = this.settings.connect("changed::" + KEEP_OPEN, () => {
+            this._keepOpen = this.settings.get_boolean(KEEP_OPEN);
+        });
+        this._showApp = this._keepOpen;
+
         this._vimMode = false;
         this._inDrag = false;
         this._inPreviewMode = false;
@@ -237,9 +243,7 @@ var DockBox = GObject.registerClass({
     }
 
     _activateWindow() {
-        if (!this._showApp)
-            return;
-        this._showApp = false;
+        this._showApp = this._keepOpen;
         this._showDock(false);
     }
 
@@ -303,7 +307,7 @@ var DockBox = GObject.registerClass({
     }
 
     _hideAppList() {
-        this._showApp = false;
+        this._showApp = this._keepOpen;
         this._vimMode = false;
         this._mainButton.reactive = true;
         Main.popModal(this);
@@ -641,6 +645,8 @@ var DockBox = GObject.registerClass({
         if (this._workspaceChangedID)
             global.workspace_manager.disconnect(this._workspaceChangedID);
 
+        if (this.keepOpenID)
+            this.settings.disconnect(this.keepOpenID);
         if (this.iconFileID)
             this.settings.disconnect(this.iconFileID);
         if (this.useFavoritesID)

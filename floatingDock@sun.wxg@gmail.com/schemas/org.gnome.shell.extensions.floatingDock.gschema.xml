@@ -44,5 +44,11 @@
       <description>
       </description>
     </key>
+    <key name="floating-dock-keep-open" type="b">
+      <default>false</default>
+      <summary>Keep app list open</summary>
+      <description>
+      </description>
+    </key>
   </schema>
 </schemalist>

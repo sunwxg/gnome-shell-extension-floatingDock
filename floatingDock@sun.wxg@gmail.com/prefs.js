@@ -19,6 +19,7 @@ const ICON_SIZE = 'floating-dock-icon-size';
 const ICON_FILE = 'floating-dock-icon-file';
 const APP_LIST = 'floating-dock-app-list';
 const USE_FAVORITES = 'floating-dock-icon-favorites';
+const KEEP_OPEN = 'floating-dock-keep-open';
 
 const DIRECTION_LIST = {
     "up": "up",
@@ -62,6 +63,8 @@ var Frame = class Frame {
         settings_box.add(this.addDirectionCombo());
         settings_box.add(this.addIconSizeCombo());
         settings_box.add(this.addIconFile());
+
+        settings_box.add(this.addItemSwitch('<b>Keep application list open</b>', KEEP_OPEN));
 
         settings_box.add(this.addItemSwitch('<b>Use system favorites</b>', USE_FAVORITES));
         this.addBoldTextToBox("User defined application list", settings_box);
