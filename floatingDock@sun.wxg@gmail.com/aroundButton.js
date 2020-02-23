@@ -43,7 +43,7 @@ class AroundButtonManager extends St.Widget {
         }
         //this._userApps = (this._gsettings.get_string(APP_LIST)).split(';');
         //for (let i = 0; i < this._userApps.length; i++) {
-            //this._aroundButtons[i + SYSTEM_ACTIONS.length] = 
+            //this._aroundButtons[i + SYSTEM_ACTIONS.length] =
                 //this.createButton(this._userApps[i], i + SYSTEM_ACTIONS.length);
             //if ((i + SYSTEM_ACTIONS.length) == 7)
                 //break;
@@ -165,7 +165,7 @@ var AroundButton = GObject.registerClass({
         } else {
             let uri = Me.path + '/icons/' + this.id + '.png';
             let gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(uri) });
-            let icon = new St.Icon({ gicon: gicon, 
+            let icon = new St.Icon({ gicon: gicon,
                                      icon_size: this.iconSize });
             this.set_child(icon);
         }
