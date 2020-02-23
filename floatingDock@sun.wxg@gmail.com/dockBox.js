@@ -50,6 +50,7 @@ var DockBox = GObject.registerClass({
         this._draggable.connect('drag-end', this._onDragEnd.bind(this));
 
         this._mainButton.connect('clicked', this._mainButtonClicked.bind(this));
+        this._mainButton.connect('button-press-event', this._mainButtonPress.bind(this));
 
         let switchWorkspace = new SwitchWorkspace();
         this._mainButton.connect('scroll-event', switchWorkspace.scrollEvent.bind(switchWorkspace));
@@ -123,7 +124,6 @@ var DockBox = GObject.registerClass({
         this.connect('style-changed', () => { this.queueRedisplay.bind(this) });
         this.connect('show', () => { this._showDock(false); });
 
-        this._createAroundButton();
         this._aroundButtonManager = new AroundButtonManager(this.iconSize, this._mainButton);
 
         Main.layoutManager.addChrome(this._mainButton, { trackFullscreen: true });
@@ -348,8 +348,10 @@ var DockBox = GObject.registerClass({
             return;
 
         this._timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
-            GLib.source_remove(this._timeoutId);
             this._timeoutId = 0;
+
+            if (!this._mainButton)
+                return;
 
             let box = this._mainButton.get_allocation_box();
             this.settings.set_value(DOCK_POSITION,
@@ -627,6 +629,9 @@ var DockBox = GObject.registerClass({
     }
 
     destroy() {
+        if (this._timeoutId)
+            GLib.source_remove(this._timeoutId);
+
         if (this._overViewShownID)
             Main.overview.disconnect(this._overViewShownID);
         if (this._overViewHiddenID)

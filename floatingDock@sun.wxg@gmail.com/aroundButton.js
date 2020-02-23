@@ -1,11 +1,21 @@
-const { Clutter, GObject, Shell, St } = imports.gi;
+const { Clutter, Gio, GObject, Shell, St } = imports.gi;
 
 const Main = imports.ui.main;
 const Params = imports.misc.params;
 const GrabHelper = imports.ui.grabHelper;
+const SystemActions = imports.misc.systemActions;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
+const Convenience = Me.imports.convenience;
+
+const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
+const APP_LIST = 'floating-dock-app-list';
+const DIRECTION_ID = 'floating-dock-direction';
+
+const SYSTEM_ACTIONS = ['lock-screen', 'logout', 'suspend', 'power-off'];
+
+const DIRECTION = ['up', 'down', 'right', 'left'];
 
 const ITEM_ANIMATION_TIME = 200;
 
@@ -14,25 +24,45 @@ class AroundButtonManager extends St.Widget {
     _init(iconSize, mainButton) {
         super._init({});
 
+        this._gsettings = Convenience.getSettings(SCHEMA);
+
         this.iconSize = iconSize;
         this._mainButton = mainButton;
         this._grabHelper = new GrabHelper.GrabHelper(this, { actionMode: Shell.ActionMode.POPUP });
         this.showAroundButton = false;
 
-        let id = 'gnome-control-center.desktop';
-        let appSys = Shell.AppSystem.get_default();
-        let app = appSys.lookup_app(id);
-
         this._aroundButtons = [];
-        for (let i = 0; i <= 7; i++) {
-            let button = new AroundButton(app, i, this.iconSize, this._mainButton);
-            Main.layoutManager.addChrome(button, { trackFullscreen: true });
-            this._grabHelper.addActor(button);
-            button.connect('animation-complete', this.grabFocus.bind(this));
-            button.connect('button-clicked', () => this.popupClose());
-            button.hide();
-            this._aroundButtons[i] = button;
+        for (let i = 0; i < SYSTEM_ACTIONS.length; i++) {
+            this._aroundButtons[i] = this.createButton(SYSTEM_ACTIONS[i], i);
         }
+        for (let i = 0; i < DIRECTION.length; i++) {
+            this._aroundButtons[i + DIRECTION.length] = 
+                this.createButton(DIRECTION[i], i + DIRECTION.length);
+            if ((i + SYSTEM_ACTIONS.length) == 7)
+                break;
+        }
+        //this._userApps = (this._gsettings.get_string(APP_LIST)).split(';');
+        //for (let i = 0; i < this._userApps.length; i++) {
+            //this._aroundButtons[i + SYSTEM_ACTIONS.length] = 
+                //this.createButton(this._userApps[i], i + SYSTEM_ACTIONS.length);
+            //if ((i + SYSTEM_ACTIONS.length) == 7)
+                //break;
+        //}
+
+        this._mainButtonHideId = this._mainButton.connect('hide', () => this.popupClose() );
+    }
+
+    createButton(id, number) {
+        let button = new AroundButton(id, number, this.iconSize, this._mainButton);
+
+        Main.layoutManager.addChrome(button);
+        button.hide();
+
+        this._grabHelper.addActor(button);
+        button.connect('animation-complete', this.grabFocus.bind(this));
+        button.connect('button-clicked', this.popupClose.bind(this));
+        button.connect('direction-changed', this.directionChanged.bind(this));
+        return button;
     }
 
     popup() {
@@ -49,7 +79,15 @@ class AroundButtonManager extends St.Widget {
         this._grabHelper.ungrab({ actor: this._grabButton });
     }
 
-    grabFocus(button) {
+    directionChanged(button, direction) {
+        this.popupClose();
+        this._gsettings.set_string(DIRECTION_ID, direction);
+    }
+
+    grabFocus(button, number) {
+        if (number != this._aroundButtons.length - 1)
+            return;
+
         this._grabButton = button;
         this._grabHelper.grab({
             actor: button,
@@ -74,6 +112,9 @@ class AroundButtonManager extends St.Widget {
     }
 
     destroy() {
+        if (this._mainButtonHideId)
+            this._mainButton.disconnect(this._mainButtonHideId);
+
         this._aroundButtons.forEach( button => {
             this._grabHelper.removeActor(button);
             Main.layoutManager.removeChrome(button);
@@ -86,31 +127,60 @@ class AroundButtonManager extends St.Widget {
 
 var AroundButton = GObject.registerClass({
     Signals: {
-        'animation-complete': {},
+        'animation-complete': { param_types: [GObject.TYPE_INT] },
         'button-clicked': {},
+        'direction-changed': { param_types: [GObject.TYPE_STRING] },
     },
 }, class AroundButton extends St.Button {
-    _init(app, number, iconSize, mainButton) {
-        super._init({ label: app.get_name(),
-                      name: 'floating-dock-around-button',
+    _init(id, number, iconSize, mainButton) {
+        super._init({ name: 'floating-dock-around-button',
                       y_align: Clutter.ActorAlign.CENTER,
                       reactive: true,
                       track_hover: true,
         });
 
-        this.app = app;
+        this.id = id;
+        let appSys = Shell.AppSystem.get_default();
+        this.isApp = appSys.lookup_app(id) ? true : false;
+        this.isAction = SYSTEM_ACTIONS.includes(id) ? true : false;
+
         this.number = number;
         this.iconSize = iconSize;
         this.mainButton = mainButton;
         this.set_pivot_point(0.5, 0.5);
         this.scale = 0.8;
 
-        this.set_child(this.app.create_icon_texture(this.iconSize));
+        this._systemActions = new SystemActions.getDefault();
+
+        if (this.isApp) {
+            let app = appSys.lookup_app(this.id);
+            this.set_child(app.create_icon_texture(this.iconSize));
+        } else if (this.isAction) {
+            let iconName = this._systemActions.getIconName(id);
+            let icon = new St.Icon({ icon_name: iconName,
+                                     width: this.iconSize,
+                                     height: this.iconSize,
+                                     style_class: 'system-action-icon' });
+            this.set_child(icon);
+        } else {
+            let uri = Me.path + '/icons/' + this.id + '.png';
+            let gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(uri) });
+            let icon = new St.Icon({ gicon: gicon, 
+                                     icon_size: this.iconSize });
+            this.set_child(icon);
+        }
 
         this.connect('clicked', this._onClicked.bind(this));
         this.connect('notify::hover', this._onHover.bind(this));
     }
 
+    /*
+     *       1
+     *    0      2
+     *   7  Main  3
+     *    6      4
+     *       5
+     */
     _circle(box) {
         let boxWidth = box.x2 - box.x1;
         let boxHeight = box.y2 - box.y1;
@@ -126,19 +196,19 @@ var AroundButton = GObject.registerClass({
         } else if (this.number == 2) {
             x = box.x1 + R * 0.7071;
             y = box.y1 - R * 0.7071;
-        } else if (this.number == 3) {
+        } else if (this.number == 7) {
             x = box.x1 - R;
             y = box.y1;
-        } else if (this.number == 4) {
+        } else if (this.number == 3) {
             x = box.x1 + R;
             y = box.y1;
-        } else if (this.number == 5) {
+        } else if (this.number == 6) {
             x = box.x1 - R * 0.7071;
             y = box.y1 + R * 0.7071;
-        } else if (this.number == 6) {
+        } else if (this.number == 5) {
             x = box.x1;
             y = box.y1 + R;
-        } else if (this.number == 7) {
+        } else if (this.number == 4) {
             x = box.x1 + R * 0.7071;
             y = box.y1 + R * 0.7071;
         }
@@ -208,8 +278,7 @@ var AroundButton = GObject.registerClass({
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             duration: ITEM_ANIMATION_TIME,
             onComplete: () => {
-                if (this.number == 7)
-                    this.emit('animation-complete'); }
+                    this.emit('animation-complete', this.number); }
             });
     }
 
@@ -228,7 +297,16 @@ var AroundButton = GObject.registerClass({
     }
 
     _onClicked() {
-        this.app.open_new_window(-1);
+        if (this.isApp) {
+            let app = appSys.lookup_app(this.id);
+            app.open_new_window(-1);
+        } else if (this.isAction) {
+            this._systemActions.activateAction(this.id);
+        } else {
+            this.emit('direction-changed', this.id);
+            return;
+        }
+
         this.emit('button-clicked');
     }
 
