@@ -4,6 +4,7 @@ const PopupMenu = imports.ui.popupMenu;
 const AppDisplay = imports.ui.appDisplay;
 const IconGrid = imports.ui.iconGrid;
 const Main = imports.ui.main;
+const Meta = imports.gi.Meta;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -49,6 +50,7 @@ var MyAppButton = GObject.registerClass({
         this.app = app;
         this.iconSize = iconSize;
         this.vimMode = vimMode;
+        this.time = 0;
 
         this.set_pivot_point(0.5, 0.5);
         this.connect('notify::hover', this._onHover.bind(this));
@@ -71,6 +73,31 @@ var MyAppButton = GObject.registerClass({
         }
 
         return Clutter.EVENT_STOP;
+    }
+
+    vfunc_scroll_event(scrollEvent) {
+        let gap = scrollEvent.time - this.time;
+        if (gap < 500 && gap >= 0)
+            return;
+
+        this.time = scrollEvent.time;
+        this._switchWindows();
+
+        return Clutter.EVENT_STOP;
+    }
+
+    _switchWindows() {
+        let currentWorkspace = global.workspace_manager.get_active_workspace();
+
+        let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, currentWorkspace);
+        windows.map(w => {
+            return w.is_attached_dialog() ? w.get_transient_for() : w;
+        }).filter((w, i, a) => !w.skip_taskbar && a.indexOf(w) == i);
+
+        if (windows.length <= 1)
+            return;
+
+        windows[windows.length - 1].activate(global.get_current_time());
     }
 
     leftButtonClicked() {
