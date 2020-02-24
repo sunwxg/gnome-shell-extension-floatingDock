@@ -64,7 +64,7 @@ var Frame = class Frame {
         settings_box.add(this.addIconSizeCombo());
         settings_box.add(this.addIconFile());
 
-        settings_box.add(this.addItemSwitch('<b>Keep application list open</b>', KEEP_OPEN));
+        settings_box.add(this.addItemSwitch('<b>Keep dock expanded</b>', KEEP_OPEN));
 
         settings_box.add(this.addItemSwitch('<b>Use system favorites</b>', USE_FAVORITES));
         this.addBoldTextToBox("User defined application list", settings_box);
