@@ -10,6 +10,7 @@ Move dock anywhere on the desktop.
 > Press uppercase alphabet, force to open new window.
 
 * Point on the main button, change workspace by mouse scroll
+* Right click the main button, show some selections
 
 ## Install
 
