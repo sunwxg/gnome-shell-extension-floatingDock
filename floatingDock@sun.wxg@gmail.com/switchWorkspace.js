@@ -6,6 +6,7 @@ const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 var SwitchWorkspace = class SwitchWorkspace {
     constructor() {
         this.wm = global.workspace_manager;
+        this._time = 0;
     }
 
     scrollEvent(actor, event) {
@@ -20,6 +21,11 @@ var SwitchWorkspace = class SwitchWorkspace {
         default:
             return Clutter.EVENT_STOP;
         }
+
+        let gap = event.get_time() - this._time;
+        if (gap < 500 && gap >= 0)
+            return Clutter.EVENT_STOP;
+        this._time = event.get_time();
 
         this.switchAction(direction);
 
