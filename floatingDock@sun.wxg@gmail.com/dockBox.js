@@ -259,7 +259,7 @@ var DockBox = GObject.registerClass({
         if (!window)
             return;
 
-        Main.activateWindow(window);
+        this.activateWindow(window);
         this._hideAppList();
     }
 
@@ -278,7 +278,7 @@ var DockBox = GObject.registerClass({
             item.child.app.open_new_window(-1);
 
         } else if ( windows.length == 1) {
-            Main.activateWindow(windows[0]);
+            this.activateWindow(windows[0]);
 
         }  else if (windows.length > 1) {
             this._inPreviewMode = true;
@@ -287,6 +287,14 @@ var DockBox = GObject.registerClass({
         }
 
         this._hideAppList();
+    }
+
+    activateWindow(window) {
+        let focusWindow = global.display.get_focus_window();
+        if (window == focusWindow)
+            window.minimize();
+        else
+            Main.activateWindow(window);
     }
 
     _mainButtonClicked() {

@@ -178,8 +178,13 @@ var MyAppButton = GObject.registerClass({
     }
 
     activateWindow(metaWindow) {
-        if (metaWindow)
-            Main.activateWindow(metaWindow);
+        if (metaWindow) {
+            let focusWindow = global.display.get_focus_window();
+            if (metaWindow == focusWindow)
+                metaWindow.minimize();
+            else
+                Main.activateWindow(metaWindow);
+        }
 
         this.emit('activate-window');
     }

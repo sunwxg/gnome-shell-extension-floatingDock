@@ -125,9 +125,7 @@ class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
 
     vfunc_button_press_event() {
         this._getTopMenu().close();
-        Main.activateWindow(this._window);
-        this._button.emit('activate-window');
-
+        this._button.activateWindow(this._window);
         return Clutter.EVENT_PROPAGATE;
     }
 
