@@ -7,7 +7,6 @@ const SystemActions = imports.misc.systemActions;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
 
 const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
 const APP_LIST = 'floating-dock-app-list';
@@ -24,7 +23,7 @@ class AroundButtonManager extends St.Widget {
     _init(iconSize, mainButton) {
         super._init({});
 
-        this._gsettings = Convenience.getSettings(SCHEMA);
+        this._gsettings = ExtensionUtils.getSettings(SCHEMA);
 
         this.iconSize = iconSize;
         this._mainButton = mainButton;

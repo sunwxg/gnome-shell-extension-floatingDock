@@ -9,7 +9,6 @@ const Main = imports.ui.main;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
 const DockBox = Me.imports.dockBox.DockBox;
 const Util = Me.imports.util;
 
@@ -23,7 +22,7 @@ var gsettings = null;
 
 class FloatDock {
     constructor() {
-        this._gsettings = Convenience.getSettings(SCHEMA);
+        this._gsettings = ExtensionUtils.getSettings(SCHEMA);
         gsettings = this._gsettings;
 
         this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));

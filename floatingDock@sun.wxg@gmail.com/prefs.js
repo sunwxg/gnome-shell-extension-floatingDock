@@ -10,7 +10,6 @@ const _ = Gettext.gettext;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
 
 const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
 const HOTKEY = 'floating-dock-hotkey';
@@ -39,7 +38,6 @@ const ICON_SIZE_LIST = {
 };
 
 function init() {
-    //Convenience.initTranslations();
 }
 
 function buildPrefsWidget() {
@@ -51,38 +49,36 @@ function buildPrefsWidget() {
 
 var Frame = class Frame {
     constructor() {
-        this._settings = Convenience.getSettings(SCHEMA);
+        this._settings = ExtensionUtils.getSettings(SCHEMA);
 
         this._builder = new Gtk.Builder();
         this._builder.add_from_file(Me.path + '/prefs.ui');
 
         this.widget = this._builder.get_object('settings_notebook');
 
-        let settings_box = this._builder.get_object('settings_box');
+        let icon_box = this._builder.get_object('icon_box');
+        let dock_expand = this._builder.get_object('dock_expand');
+        let app_item = this._builder.get_object('app_item');
 
-        settings_box.add(this.addDirectionCombo());
-        settings_box.add(this.addIconSizeCombo());
-        settings_box.add(this.addIconFile());
+        icon_box.add(this.addIconSizeCombo());
+        icon_box.add(this.addIconFile());
 
-        settings_box.add(this.addItemSwitch('<b>Keep dock expanded</b>', KEEP_OPEN));
+        dock_expand.add(this.addDirectionCombo());
+        dock_expand.add(this.addItemSwitch('Keep dock expanded', KEEP_OPEN));
 
-        settings_box.add(this.addItemSwitch('<b>Use system favorites</b>', USE_FAVORITES));
-        this.addBoldTextToBox("User defined application list", settings_box);
-        settings_box.add(new Gtk.HSeparator({margin_bottom: 5,
-                                             margin_left: 20,
-                                             margin_right: 20,
-                                             margin_top: 5}));
-        settings_box.add(this.addAppCustomer());
+        app_item.add(this.addItemSwitch('Use system favorite applications', USE_FAVORITES));
+        app_item.add(this.addAppCustomer());
     }
 
     addDirectionCombo() {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 10,
+                                 margin_top: 5,
+                                 margin_bottom: 5,
                                  margin_left: 20,
                                  margin_right: 20,
         });
         let setting_label = new Gtk.Label({  xalign: 0 });
-        setting_label.set_markup("<b>Icon List Direction</b>");
+        setting_label.set_markup("Dock direction");
         hbox.pack_start(setting_label, true, true, 0);
         hbox.add(this.directionCombo());
 
@@ -107,12 +103,13 @@ var Frame = class Frame {
 
     addIconSizeCombo() {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 10,
+                                 margin_top: 5,
+                                 margin_bottom: 5,
                                  margin_left: 20,
                                  margin_right: 20,
         });
         let setting_label = new Gtk.Label({  xalign: 0 });
-        setting_label.set_markup("<b>Icon Size</b>");
+        setting_label.set_markup("Icon size");
         hbox.pack_start(setting_label, true, true, 0);
         hbox.add(this.iconSizeCombo());
 
@@ -137,13 +134,14 @@ var Frame = class Frame {
 
     addIconFile() {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 10,
+                                 margin_top: 5,
+                                 margin_bottom: 5,
                                  margin_left: 20,
                                  margin_right: 20,
         });
 
         let setting_label = new Gtk.Label({  xalign: 0 });
-        setting_label.set_markup("<b>Icon File</b>");
+        setting_label.set_markup("Main button icon");
         this.setting_entry = new Gtk.Entry({ hexpand: true, margin_left: 20 });
 
         this.setting_entry.set_text(this._settings.get_string(ICON_FILE));
@@ -330,7 +328,8 @@ var Frame = class Frame {
 
     addItemSwitch(string, key) {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 10,
+                                 margin_top: 5,
+                                 margin_bottom: 5,
                                  margin_left: 20,
                                  margin_right: 20,
         });
@@ -349,7 +348,8 @@ var Frame = class Frame {
             margin_left: 20,
             margin_right: 20,
             margin_top: 20});
-        txt.set_markup('<b>' + text + '</b>');
+        //txt.set_markup('<b>' + text + '</b>');
+        txt.set_markup(text);
         txt.set_line_wrap(true);
         box.add(txt);
     }
