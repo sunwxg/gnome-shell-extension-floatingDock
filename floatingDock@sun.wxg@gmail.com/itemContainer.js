@@ -12,6 +12,7 @@ const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 const WindowPreview = Me.imports.windowPreview;
 const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
+const Indicator = Me.imports.indicator;
 
 var MyAppIcon = GObject.registerClass({
 }, class MyAppIcon extends St.Widget {
@@ -196,7 +197,7 @@ var MyAppButton = GObject.registerClass({
 
 var ItemContainer = GObject.registerClass(
 class ItemContainer extends St.Widget {
-    _init(app, vimMode, number, iconSize) {
+    _init(app, vimMode, number, iconSize, indicator) {
         super._init({ style_class: 'item-container',
                       layout_manager: new Clutter.BinLayout(),
                       x_expand: true,
@@ -213,12 +214,16 @@ class ItemContainer extends St.Widget {
         this.add_child(button);
         this.child = button;
 
-        this._dot = new St.Widget({ style_class: 'app-running-dot',
-                                    x_expand: true,
-                                    y_expand: true,
-                                    x_align: Clutter.ActorAlign.CENTER,
-                                    y_align: Clutter.ActorAlign.END, });
-        this.add_child(this._dot);
+        switch (indicator) {
+        case 'dash':
+            this._indicator = new Indicator.Dash(iconSize);
+            break;
+        case 'dot':
+            this._indicator = new Indicator.Dot(iconSize);
+            break;
+        }
+        this.add_child(this._indicator);
+        this._indicator.show();
 
         this._stateChangedId = this.app.connect('windows-changed', () => {
             this._updateRunningStyle();
@@ -229,11 +234,11 @@ class ItemContainer extends St.Widget {
     }
 
     _updateRunningStyle() {
-        if (this.app.state != Shell.AppState.STOPPED &&
-            Util.appInActiveWorkspace(this.app))
-            this._dot.show();
-        else
-            this._dot.hide();
+        let windows = this.app.get_windows();
+        windows = windows.filter( (window) => {
+            return Util.windowInActiveWorkspace(window);
+        });
+        this._indicator.value = windows.length;
     }
 
     _onDestroy() {

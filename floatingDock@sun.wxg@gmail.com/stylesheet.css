@@ -12,13 +12,20 @@
   border-radius: 9px;
   background-color: rgba(46, 52, 54, 0.4); }
 
-#floating-dock .app-running-dot {
+#floating-dock .app-running-dash {
   height: 3px;
   width: 15px;
   margin-bottom: 2px;
   background-color: #1b6acb; }
 
+#floating-dock .app-running-dot {
+  height: 3px;
+  width: 3px;
+  color: red;
+ }
+
 #floating-dock .app-button {
+  margin: 4px;
   padding: 4px; }
 
 #floating-dock-number-icon {

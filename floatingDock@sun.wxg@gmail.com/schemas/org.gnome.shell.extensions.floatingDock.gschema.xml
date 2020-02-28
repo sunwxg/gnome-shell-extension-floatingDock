@@ -50,5 +50,11 @@
       <description>
       </description>
     </key>
+    <key name="floating-dock-indicator" type="s">
+      <default>"dash"</default>
+      <summary>Appliation indicator type</summary>
+      <description>
+      </description>
+    </key>
   </schema>
 </schemalist>

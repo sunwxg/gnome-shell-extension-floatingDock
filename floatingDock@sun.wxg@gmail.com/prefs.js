@@ -19,6 +19,7 @@ const ICON_FILE = 'floating-dock-icon-file';
 const APP_LIST = 'floating-dock-app-list';
 const USE_FAVORITES = 'floating-dock-icon-favorites';
 const KEEP_OPEN = 'floating-dock-keep-open';
+const INDICATOR = 'floating-dock-indicator';
 
 const DIRECTION_LIST = {
     "up": "up",
@@ -60,14 +61,42 @@ var Frame = class Frame {
         let dock_expand = this._builder.get_object('dock_expand');
         let app_item = this._builder.get_object('app_item');
 
-        icon_box.add(this.addIconSizeCombo());
-        icon_box.add(this.addIconFile());
-
         dock_expand.add(this.addDirectionCombo());
         dock_expand.add(this.addItemSwitch('Keep dock expanded', KEEP_OPEN));
 
+        icon_box.add(this.addIconSizeCombo());
+        icon_box.add(this.addIconFile());
+
+        this.addIndicator();
+
         app_item.add(this.addItemSwitch('Use system favorite applications', USE_FAVORITES));
         app_item.add(this.addAppCustomer());
+    }
+
+    addIndicator() {
+        let dash = this._builder.get_object('indicator_dash');
+        dash.key = 'dash';
+        let dot = this._builder.get_object('indicator_dot');
+        dot.key = 'dot';
+
+        dash.connect("toggled", this.radioToggled.bind(this))
+        dot.connect("toggled", this.radioToggled.bind(this))
+
+        switch (this._settings.get_string(INDICATOR)) {
+        case 'dash':
+            dash.set_active(true);
+            break;
+        case 'dot':
+            dot.set_active(true);
+            break;
+        }
+    }
+
+    radioToggled(button) {
+        if (!(button.get_active()))
+            return;
+
+        this._settings.set_string(INDICATOR, button.key);
     }
 
     addDirectionCombo() {
