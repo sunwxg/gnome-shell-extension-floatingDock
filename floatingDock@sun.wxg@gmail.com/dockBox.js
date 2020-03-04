@@ -207,8 +207,8 @@ var DockBox = GObject.registerClass({
                 continue;
 
             let item = new ItemContainer(running[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator);
-            item.child.connect('activate-window', this._activateWindow.bind(this));
-            item.child.connect('in-preview', (button, state) => {
+            item.button.connect('activate-window', this._activateWindow.bind(this));
+            item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
                 if (state)
                     this._inPreviewButton = button;
@@ -223,8 +223,8 @@ var DockBox = GObject.registerClass({
 
         for (let i in favorites) {
             let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator);
-            item.child.connect('activate-window', this._activateWindow.bind(this));
-            item.child.connect('in-preview', (button, state) => {
+            item.button.connect('activate-window', this._activateWindow.bind(this));
+            item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
                 if (state)
                     this._inPreviewButton = button;
@@ -238,8 +238,8 @@ var DockBox = GObject.registerClass({
         for (let i in this._userApps) {
             let app = this._appSystem.lookup_app(this._userApps[i]);
             let item = new ItemContainer(app, this._vimMode, this._itemNumber++, this.iconSize, this._indicator);
-            item.child.connect('activate-window', this._activateWindow.bind(this));
-            item.child.connect('in-preview', (button, state) => {
+            item.button.connect('activate-window', this._activateWindow.bind(this));
+            item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
                 if (state)
                     this._inPreviewButton = button;
@@ -257,8 +257,8 @@ var DockBox = GObject.registerClass({
     _previewSelected(number) {
         let children = this._box.get_children();
         let window = null;
-        children.forEach( (element) => {
-            let w = element.child.findPreviewMenu(number);
+        children.forEach( (item) => {
+            let w = item.button.findPreviewMenu(number);
             if (w != null)
                 window = w;
         });
@@ -279,17 +279,17 @@ var DockBox = GObject.registerClass({
         if (!item)
             return;
 
-        let  windows = Util.windowsInActiveWorkspace(item.child.app);
-        if (newWindow || !Util.appInActiveWorkspace(item.child.app)) {
-            item.child.newWindow = newWindow;
-            item.child.app.open_new_window(-1);
+        let  windows = Util.windowsInActiveWorkspace(item.button.app);
+        if (newWindow || !Util.appInActiveWorkspace(item.button.app)) {
+            item.button.newWindow = newWindow;
+            item.button.app.open_new_window(-1);
 
         } else if ( windows.length == 1) {
             this.activateWindow(windows[0]);
 
         }  else if (windows.length > 1) {
             this._inPreviewMode = true;
-            item.child._showPreviews();
+            item.button._showPreviews();
             return;
         }
 
@@ -313,7 +313,7 @@ var DockBox = GObject.registerClass({
         if (event.get_button() == 3) {
             if (this._showApp) {
                 this._showApp = false;
-                this._redisplay();
+                this._showDock(false);
             }
 
             this._aroundButtonManager.popup();
@@ -639,7 +639,7 @@ var DockBox = GObject.registerClass({
     _updateMenuStyle() {
         let children = this._box.get_children();
         children.forEach( (item) => {
-            let button = item.child;
+            let button = item.button;
             if (button._previewMenu != null) {
                 button._previewMenu.destroy();
                 button._previewMenu = null;

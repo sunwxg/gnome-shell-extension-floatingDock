@@ -5,10 +5,10 @@
   border-radius: 9px;
   background-color: rgba(46, 52, 54, 0.3); }
 
-#floating-dock .item-container {
+#floating-dock .button-box {
   margin: 4px 4px 4px 4px; }
 
-#floating-dock .item-container:hover {
+#floating-dock .button-box:hover {
   border-radius: 9px;
   background-color: rgba(46, 52, 54, 0.4); }
 
@@ -19,13 +19,9 @@
   background-color: #1b6acb; }
 
 #floating-dock .app-running-dot {
-  height: 3px;
-  width: 3px;
-  color: red;
- }
+  color: red; }
 
 #floating-dock .app-button {
-  margin: 4px;
   padding: 4px; }
 
 #floating-dock-number-icon {
@@ -35,7 +31,7 @@
 
 #floating-dock-main-button {
   border-radius: 9px;
-  padding: 10px; }
+  padding: 8px; }
 
 #floating-dock-around-button {
   border-radius: 9px;
