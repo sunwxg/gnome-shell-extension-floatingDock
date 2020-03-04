@@ -6,7 +6,7 @@
   background-color: rgba(46, 52, 54, 0.3); }
 
 #floating-dock .button-box {
-  margin: 4px 4px 4px 4px; }
+  margin: 8px 8px 8px 8px; }
 
 #floating-dock .button-box:hover {
   border-radius: 9px;
@@ -22,7 +22,7 @@
   color: red; }
 
 #floating-dock .app-button {
-  padding: 4px; }
+  padding: 0px; }
 
 #floating-dock-number-icon {
   border-radius: 9px;
