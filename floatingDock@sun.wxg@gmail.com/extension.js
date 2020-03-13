@@ -81,6 +81,7 @@ function enable() {
 function enableFloatDock() {
     if (_startupPreparedId)
         Main.layoutManager.disconnect(_startupPreparedId);
+    _startupPreparedId = 0;
 
     floatDock = new FloatDock();
 }
