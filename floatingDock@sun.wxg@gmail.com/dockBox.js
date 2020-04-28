@@ -180,7 +180,8 @@ var DockBox = GObject.registerClass({
         this._vimMode = false;
         if (this._mainButton)
             this._mainButton.reactive = true;
-        Main.queueDeferredWork(this._workId);
+        //Main.queueDeferredWork(this._workId);
+        this._redisplay();
     }
 
     _findInBox(app) {

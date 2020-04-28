@@ -3,7 +3,6 @@
   "description": "Move dock anywhere on the desktop\n\nPress Ctrl+Alt+k to vi mode\nPress lowercase alphabet, open new window or active the window\nPress uppercase alphabet, force to open new window\n\nPoint on the main button, change workspace by mouse scroll\nRight click the main button, show some selections",
   "original-authors": "sun.wxg@gmail.com",
   "shell-version": [
-	  "3.34",
 	  "3.36"
   ],
   "url": "https://github.com/sunwxg/gnome-shell-extension-floatingDock",
