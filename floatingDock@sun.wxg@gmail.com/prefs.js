@@ -191,7 +191,7 @@ var Frame = class Frame {
 
     showFileChooserDialog() {
         let fileChooser = new Gtk.FileChooserDialog({ title: "Select File" });
-        fileChooser.set_transient_for(this.widget.get_parent());
+        fileChooser.set_transient_for(this.widget.get_parent().get_parent());
         fileChooser.set_default_response(1);
 
         let filter = new Gtk.FileFilter();
