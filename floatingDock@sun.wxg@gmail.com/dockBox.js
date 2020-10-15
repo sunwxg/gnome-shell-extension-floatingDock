@@ -57,7 +57,7 @@ var DockBox = GObject.registerClass({
         let switchWorkspace = new SwitchWorkspace();
         this._mainButton.connect('scroll-event', switchWorkspace.scrollEvent.bind(switchWorkspace));
 
-        this._mainButton.connect('allocation-changed', () => {
+        this._mainButton.connect('notify::allocation', () => {
             let box = this._mainButton.get_allocation_box();
             this._mainButtonX = box.x1;
             this._mainButtonY = box.y1;
@@ -388,7 +388,7 @@ var DockBox = GObject.registerClass({
         let boxWidth = this.get_width();
         let boxHeight = this.get_height();
 
-        let box = Shell.util_get_transformed_allocation(this._box);
+        const box = this._box.get_transformed_extents();
         let x = box.x1;
         let y = box.y1;
         switch (this.direction) {
@@ -525,8 +525,8 @@ var DockBox = GObject.registerClass({
         box.set_origin(x, y);
     }
 
-    vfunc_allocate(box, flags) {
-        super.vfunc_allocate(box,flags);
+    vfunc_allocate(box) {
+        super.vfunc_allocate(box);
 
         let boxWidth = box.x2 - box.x1;
         let boxHeight = box.y2 - box.y1;
@@ -561,7 +561,7 @@ var DockBox = GObject.registerClass({
         box.set_origin(x, y);
         if (!this._inDrag)
             this._sureInWorkArea(box);
-        this.set_allocation(box, flags);
+        this.set_allocation(box);
     }
 
     vfunc_key_press_event(keyEvent) {

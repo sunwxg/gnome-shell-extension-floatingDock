@@ -18,6 +18,23 @@ const DIRECTION = ['up', 'down', 'right', 'left'];
 
 const ITEM_ANIMATION_TIME = 200;
 
+var Actions = GObject.registerClass({
+    Signals: {
+        'do': { param_types: [GObject.TYPE_STRING] },
+    },
+}, class Actions extends St.Widget {
+    _init() {
+        super._init({});
+
+        this._systemActions = new SystemActions.getDefault();
+        this.connect('do', (button, id) => {
+            this._systemActions.activateAction(id);
+        });
+    }
+});
+
+let actions = new Actions({});
+
 var AroundButtonManager = GObject.registerClass(
 class AroundButtonManager extends St.Widget {
     _init(iconSize, mainButton) {
@@ -299,14 +316,16 @@ var AroundButton = GObject.registerClass({
         if (this.isApp) {
             let app = appSys.lookup_app(this.id);
             app.open_new_window(-1);
+            this.emit('button-clicked');
         } else if (this.isAction) {
-            this._systemActions.activateAction(this.id);
+            this.emit('button-clicked');
+            //this._systemActions.activateAction(this.id);
+            actions.emit('do', this.id);
+            return;
         } else {
             this.emit('direction-changed', this.id);
             return;
         }
-
-        this.emit('button-clicked');
     }
 
     _onHover() {

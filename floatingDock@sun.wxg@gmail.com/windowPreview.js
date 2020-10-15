@@ -138,7 +138,7 @@ class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
 });
 
 function getDirectionStyle(source) {
-    let sourceAllocation = Shell.util_get_transformed_allocation(source);
+    const sourceAllocation = source.get_transformed_extents();
     let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
     // -arrow-base + -arrow-border-radius*2 + -arrow-border-width*2
     let arrowHeight = (24 + 9 * 2 + 2);
