@@ -77,7 +77,8 @@ var BoxSlideLayout = GObject.registerClass({
         let [, natHeight] = child.get_preferred_height(availWidth);
 
         let actorBox = new Clutter.ActorBox();
-        for (let i = 0; i < children.length; i++) {
+        let i;
+        for (i = 0; i < children.length; i++) {
             if (this._direction == St.Side.TOP ||
                 this._direction == St.Side.BOTTOM) {
                 actorBox.x1 = box.x1;
@@ -100,6 +101,11 @@ var BoxSlideLayout = GObject.registerClass({
 
                 children[i].allocate(actorBox);
             }
+        }
+
+        for (; i < children.length; i++) {
+            actorBox.set_size(0, 0);
+            children[i].allocate(actorBox);
         }
     }
 
