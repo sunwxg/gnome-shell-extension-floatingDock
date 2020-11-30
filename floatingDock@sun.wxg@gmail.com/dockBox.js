@@ -388,21 +388,24 @@ var DockBox = GObject.registerClass({
         let boxWidth = this.get_width();
         let boxHeight = this.get_height();
 
-        const box = this._box.get_transformed_extents();
-        let x = box.x1;
-        let y = box.y1;
+        const box = this._mainButton.get_transformed_extents();
+        let sourceTopLeft = box.get_top_left();
+        let sourceBottomRight = box.get_bottom_right();
+        let x = sourceTopLeft.x;
+        let y = sourceTopLeft.y;
+
         switch (this.direction) {
         case St.Side.TOP:
         case St.Side.BOTTOM:
             x = x - labelWidth;
             if (x < 0)
-                x = box.x2;
+                x = sourceBottomRight.x;
             break;
         case St.Side.RIGHT:
         case St.Side.LEFT:
             y = y - labelHeight;
             if (y < 0)
-                y = box.y2;
+                y = sourceBottomRight.y;
         default:
             break;
         }
