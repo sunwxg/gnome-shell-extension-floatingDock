@@ -151,7 +151,7 @@ var MyAppButton = GObject.registerClass({
 
     _popupMenu() {
         if (!this._menu) {
-            this._menu = new AppDisplay.AppIconMenu(this);
+            this._menu = new AppDisplay.AppIconMenu(this, St.Side.LEFT);
             this._menu.connect('activate-window', (menu, window) => {
                 this.activateWindow(window); });
 

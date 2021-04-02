@@ -43,7 +43,6 @@ function init() {
 
 function buildPrefsWidget() {
     let frame = new Frame();
-    frame.widget.show_all();
 
     return frame.widget;
 }
@@ -61,16 +60,16 @@ var Frame = class Frame {
         let dock_expand = this._builder.get_object('dock_expand');
         let app_item = this._builder.get_object('app_item');
 
-        dock_expand.add(this.addDirectionCombo());
-        dock_expand.add(this.addItemSwitch('Keep dock expanded', KEEP_OPEN));
+        dock_expand.append(this.addDirectionCombo());
+        dock_expand.append(this.addItemSwitch('Keep dock expanded', KEEP_OPEN));
 
-        icon_box.add(this.addIconSizeCombo());
-        icon_box.add(this.addIconFile());
+        icon_box.append(this.addIconSizeCombo());
+        icon_box.append(this.addIconFile());
 
         this.addIndicator();
 
-        app_item.add(this.addItemSwitch('Use system favorite applications', USE_FAVORITES));
-        app_item.add(this.addAppCustomer());
+        app_item.append(this.addItemSwitch('Use system favorite applications', USE_FAVORITES));
+        app_item.append(this.addAppCustomer());
     }
 
     addIndicator() {
@@ -103,13 +102,13 @@ var Frame = class Frame {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
                                  margin_top: 5,
                                  margin_bottom: 5,
-                                 margin_left: 20,
-                                 margin_right: 20,
+                                 margin_start: 20,
+                                 margin_end: 20,
         });
-        let setting_label = new Gtk.Label({  xalign: 0 });
+        let setting_label = new Gtk.Label({ hexpand: true, xalign: 0 });
         setting_label.set_markup("Dock direction");
-        hbox.pack_start(setting_label, true, true, 0);
-        hbox.add(this.directionCombo());
+        hbox.append(setting_label);
+        hbox.append(this.directionCombo());
 
         return hbox;
     }
@@ -134,13 +133,13 @@ var Frame = class Frame {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
                                  margin_top: 5,
                                  margin_bottom: 5,
-                                 margin_left: 20,
-                                 margin_right: 20,
+                                 margin_start: 20,
+                                 margin_end: 20,
         });
-        let setting_label = new Gtk.Label({  xalign: 0 });
+        let setting_label = new Gtk.Label({ hexpand: true, xalign: 0 });
         setting_label.set_markup("Icon size");
-        hbox.pack_start(setting_label, true, true, 0);
-        hbox.add(this.iconSizeCombo());
+        hbox.append(setting_label);
+        hbox.append(this.iconSizeCombo());
 
         return hbox;
     }
@@ -165,26 +164,26 @@ var Frame = class Frame {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
                                  margin_top: 5,
                                  margin_bottom: 5,
-                                 margin_left: 20,
-                                 margin_right: 20,
+                                 margin_start: 20,
+                                 margin_end: 20,
         });
 
         let setting_label = new Gtk.Label({  xalign: 0 });
         setting_label.set_markup("Main button icon");
-        this.setting_entry = new Gtk.Entry({ hexpand: true, margin_left: 20 });
+        this.setting_entry = new Gtk.Entry({ hexpand: true, margin_start: 20 });
 
         this.setting_entry.set_text(this._settings.get_string(ICON_FILE));
         this.setting_entry.connect('changed', (entry) => {
             this._settings.set_string(ICON_FILE, entry.get_text()); });
 
-        this.fileChooseButton = new Gtk.Button({ margin_left: 5 });
+        this.fileChooseButton = new Gtk.Button({ margin_start: 5 });
         this.fileChooseButton.set_label("Browse");
         this.fileChooseButton.connect("clicked", this.showFileChooserDialog.bind(this));
 
 
-        hbox.pack_start(setting_label, false, true, 0);
-        hbox.add(this.setting_entry);
-        hbox.add(this.fileChooseButton);
+        hbox.append(setting_label);
+        hbox.append(this.setting_entry);
+        hbox.append(this.fileChooseButton);
 
         return hbox;
     }
@@ -198,47 +197,18 @@ var Frame = class Frame {
         filter.add_pixbuf_formats();
         fileChooser.filter = filter;
 
-        fileChooser.add_button("Cancel", Gtk.ResponseType.CANCEL);
         fileChooser.add_button("Open", Gtk.ResponseType.ACCEPT);
 
-        let preview_image = new Gtk.Image();
-        fileChooser.set_preview_widget(preview_image);
-
-        fileChooser.connect('update-preview', (dialog) => {
-        dialog.set_preview_widget_active(false);
-            let file = fileChooser.get_uris();
-            if (file.length > 0 && file[0].startsWith("file://")) {
-                file = decodeURIComponent(file[0].substring(7));
-            } else {
-                return;
+        fileChooser.connect("response", (dialog, response) => {
+            if (response == Gtk.ResponseType.ACCEPT) {
+                let file = dialog.get_file().get_path()
+                if (file.length > 0)
+                    this.setting_entry.set_text(file);
+                fileChooser.destroy();
             }
-            if (GLib.file_test(file, GLib.FileTest.IS_DIR))
-                return;
-            let pixbuf = GdkPixbuf.Pixbuf.new_from_file(file);
-            let maxwidth = 400.0, maxheight = 800.0;
-            let width = pixbuf.get_width(), height = pixbuf.get_height();
-            let scale = Math.min(maxwidth / width, maxheight / height);
-            if (scale < 1) {
-                width = width * scale;
-                height = height * scale;
-                pixbuf = pixbuf.scale_simple(width.toFixed(0), height.toFixed(0), GdkPixbuf.InterpType.BILINEAR);
-            }
-            preview_image.set_from_pixbuf(pixbuf);
-            dialog.set_preview_widget_active(true);
         });
 
-        switch(fileChooser.run()) {
-            case Gtk.ResponseType.CANCEL:
-                fileChooser.destroy();
-                break;
-            case Gtk.ResponseType.ACCEPT:
-                let file = fileChooser.get_uris();
-                if (file.length > 0 && file[0].startsWith("file://"))
-                    this.setting_entry.set_text(decodeURIComponent(file[0].substring(7)));
-                fileChooser.destroy();
-                break;
-            default:
-        }
+        fileChooser.show();
     }
 
     addAppCustomer() {
@@ -251,7 +221,7 @@ var Frame = class Frame {
         let appChooserWindow = this._builder.get_object('app_chooser_window');
         addButton.connect('clicked', () => {
             appChooserWindow.set_transient_for(this.widget.get_parent().get_parent());
-            appChooserWindow.show_all();
+            appChooserWindow.show();
         });
 
 
@@ -265,26 +235,26 @@ var Frame = class Frame {
             let row = this.appRow(id);
             if (row) {
                 if (this.addAppToList(id))
-                    appListBox.add(row);
+                    appListBox.append(row);
             }
-            appListBox.show_all();
+            appListBox.show();
         });
 
         let apps = (this._settings.get_string(APP_LIST)).split(';');
         apps.forEach( app => {
             let row = this.appRow(app);
             if (row)
-                appListBox.add(row);
+                appListBox.append(row);
         });
-        appListBox.show_all();
+        appListBox.show();
 
         deleteButton.connect('clicked', () => {
             if (!appListBox.get_activate_on_single_click())
                 return;
             let row = appListBox.get_selected_row();
-            this.removeAppToList((row.get_children())[0].app);
+            this.removeAppToList(row.get_first_child().app);
             appListBox.remove(row);
-            appListBox.show_all();
+            appListBox.show();
         });
 
         return appCustomer;
@@ -343,13 +313,13 @@ var Frame = class Frame {
         let icon = app.get_icon();
         if (!icon)
             icon = new Gio.ThemedIcon({ name: "application-x-executable" });
-        image.set_from_gicon(icon, Gtk.IconSize.BUTTON);
+        image.set_from_gicon(icon);
         image.set_pixel_size(32);
-        let label = new Gtk.Label({ margin_left: 10 });
+        let label = new Gtk.Label({ margin_start: 10 });
         label.set_text(app.get_display_name());
 
-        row.add(image);
-        row.add(label);
+        row.append(image);
+        row.append(label);
         row.app = appId;
 
         return row;
@@ -359,27 +329,27 @@ var Frame = class Frame {
         let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
                                  margin_top: 5,
                                  margin_bottom: 5,
-                                 margin_left: 20,
-                                 margin_right: 20,
+                                 margin_start: 20,
+                                 margin_end: 20,
         });
-        let info = new Gtk.Label({xalign: 0});
+        let info = new Gtk.Label({ hexpand: true, xalign: 0 });
         info.set_markup(string);
-        hbox.pack_start(info, false, false, 0);
+        hbox.append(info);
 
         let button = new Gtk.Switch({ active: this._settings.get_boolean(key) });
         button.connect('notify::active', (button) => { this._settings.set_boolean(key, button.active); });
-        hbox.pack_end(button, false, false, 0);
+        hbox.append(button);
         return hbox;
     }
 
     addBoldTextToBox(text, box) {
         let txt = new Gtk.Label({xalign: 0,
-            margin_left: 20,
-            margin_right: 20,
+            margin_start: 20,
+            margin_end: 20,
             margin_top: 20});
         //txt.set_markup('<b>' + text + '</b>');
         txt.set_markup(text);
         txt.set_line_wrap(true);
-        box.add(txt);
+        box.append(txt);
     }
 };

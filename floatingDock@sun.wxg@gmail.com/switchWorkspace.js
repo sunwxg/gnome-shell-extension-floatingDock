@@ -76,12 +76,19 @@ var SwitchWorkspace = class SwitchWorkspace {
 
         ws[activeIndex] = activeWs;
 
+        const vertical = this.wm.layout_rows === -1;
         for (let i = activeIndex - 1; i >= 0; i--) {
-            ws[i] = ws[i + 1].get_neighbor(Meta.MotionDirection.UP);
+            if (vertical)
+                ws[i] = ws[i + 1].get_neighbor(Meta.MotionDirection.UP);
+            else
+                ws[i] = ws[i + 1].get_neighbor(Meta.MotionDirection.LEFT);
         }
 
         for (let i = activeIndex + 1; i < this.wm.n_workspaces; i++) {
-            ws[i] = ws[i - 1].get_neighbor(Meta.MotionDirection.DOWN);
+            if (vertical)
+                ws[i] = ws[i - 1].get_neighbor(Meta.MotionDirection.DOWN);
+            else
+                ws[i] = ws[i - 1].get_neighbor(Meta.MotionDirection.RIGHT);
         }
 
         return ws;

@@ -51,7 +51,7 @@
       </description>
     </key>
     <key name="floating-dock-indicator" type="s">
-      <default>"dash"</default>
+      <default>"dot"</default>
       <summary>Appliation indicator type</summary>
       <description>
       </description>
