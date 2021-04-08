@@ -28,17 +28,27 @@ class MainButton extends St.Button {
         });
         this.set_child(this.container);
 
-        this.icon = new St.Icon({ gicon: this._createButtonIcon(), });
+        this.icon = new St.Icon({ gicon: this._createButtonIcon(),
+                                  icon_size: this.iconSize });
         this.container.add_child(this.icon);
+
+        this.transparentIcon = new St.Widget({
+            name: 'floating-dock-transparent-button',
+            x: 0,
+            y: 0,
+            width: this.iconSize,
+            height: this.iconSize,
+        });
 
         let switchWorkspace = new SwitchWorkspace();
         this.connect('scroll-event', switchWorkspace.scrollEvent.bind(switchWorkspace));
 
         this.iconFileID = this.settings.connect("changed::" + ICON_FILE, () => {
-            if (this.container.get_children().length)
-                this.container.remove_child(this.icon);
-            this.icon = new St.Icon({ gicon: this._createButtonIcon(), });
-            this._showIcon();
+            let child = this.container.get_first_child();
+            this.container.remove_child(child);
+            this.icon = new St.Icon({ gicon: this._createButtonIcon(),
+                                      icon_size: this.iconSize });
+            this.container.add_child(this.icon);
             this._addWatch();
         });
 
@@ -86,17 +96,17 @@ class MainButton extends St.Button {
     }
 
     _showIcon() {
-        if (this.container.get_children().length == 0) {
-            this.icon = new St.Icon({ gicon: this._createButtonIcon(), });
+        if (this.container.get_first_child() == this.transparentIcon) {
+            this.container.remove_child(this.transparentIcon);
             this.container.add_child(this.icon);
         }
-        this.remove_style_class_name('transparent-button');
     }
 
     _hideIcon() {
-        if (this.container.get_children().length)
+        if (this.container.get_first_child() == this.icon) {
             this.container.remove_child(this.icon);
-        this.add_style_class_name('transparent-button');
+            this.container.add_child(this.transparentIcon);
+        }
     }
 
     vfunc_enter_event(crossingEvent) {
