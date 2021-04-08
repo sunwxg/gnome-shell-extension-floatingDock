@@ -7,12 +7,12 @@ const AppFavorites = imports.ui.appFavorites;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const ItemContainer = Me.imports.itemContainer.ItemContainer;
-const SwitchWorkspace = Me.imports.switchWorkspace.SwitchWorkspace;
 const NUMBER_TO_CHAR_UPPERCASE = Me.imports.util.NUMBER_TO_CHAR_UPPERCASE;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
 const ItemBox = Me.imports.itemBox.ItemBox;
 const AroundButtonManager = Me.imports.aroundButton.AroundButtonManager;
+const MainButton = Me.imports.mainButton.MainButton;
 
 const ICON_FILE = 'floating-dock-icon-file';
 const DOCK_POSITION = 'floating-dock-position';
@@ -28,6 +28,7 @@ var DRAGGING_WINDOW_OPACITY = 0;
 
 var DockBox = GObject.registerClass({
     Signals: {
+        'dock-updated': {},
     },
 }, class DockBox extends St.BoxLayout {
     _init(direction, iconSize, settings) {
@@ -40,7 +41,7 @@ var DockBox = GObject.registerClass({
         this.iconSize = iconSize;
         this.direction = direction;
 
-        this._mainButton = this._createMainButton();
+        this._mainButton = new MainButton(iconSize, settings);
         this._mainButton._delegate = this;
         this._draggable = DND.makeDraggable(this._mainButton,
                                             { restoreOnSuccess: false,
@@ -54,24 +55,10 @@ var DockBox = GObject.registerClass({
         this._mainButton.connect('clicked', this._mainButtonClicked.bind(this));
         this._mainButton.connect('button-press-event', this._mainButtonPress.bind(this));
 
-        let switchWorkspace = new SwitchWorkspace();
-        this._mainButton.connect('scroll-event', switchWorkspace.scrollEvent.bind(switchWorkspace));
-
         this._mainButton.connect('notify::allocation', () => {
             let box = this._mainButton.get_allocation_box();
             this._mainButtonX = box.x1;
             this._mainButtonY = box.y1;
-        });
-
-        this._mainButton.connect('style-changed', () => {
-            let icon = new St.Icon({ gicon: this._createButtonIcon(),
-                                     icon_size: this.iconSize });
-            this._mainButton.set_child(icon);
-        });
-        this.iconFileID = this.settings.connect("changed::" + ICON_FILE, () => {
-            let icon = new St.Icon({ gicon: this._createButtonIcon(),
-                                     icon_size: this.iconSize });
-            this._mainButton.set_child(icon);
         });
 
         this._label = new St.Label({ style_class: 'dash-label',
@@ -137,29 +124,19 @@ var DockBox = GObject.registerClass({
         this.connect('style-changed', () => { this.queueRedisplay.bind(this) });
         this.connect('show', () => { this._showDock(false); });
 
+        this.connect('dock-updated', () => {
+            if (this._showApp)
+                this._mainButton.showIcon(true);
+            else
+                this._mainButton.showIcon(false);
+        });
+
         this._aroundButtonManager = new AroundButtonManager(this.iconSize, this._mainButton);
 
-        Main.layoutManager.addChrome(this._mainButton, { trackFullscreen: true });
         Main.layoutManager.addChrome(this, { trackFullscreen: true });
 
         this._mainButton.set_position(this._mainButtonX, this._mainButtonY);
         this._monitorChanged();
-    }
-
-    _createMainButton() {
-        let icon = new St.Icon({ gicon: this._createButtonIcon(),
-                                 icon_size: this.iconSize });
-        let button= new St.Button({ name: 'floating-dock-main-button',
-                                    child: icon });
-        return button;
-    }
-
-    _createButtonIcon() {
-        let uri = this.settings.get_string(ICON_FILE)
-        if (!GLib.file_test(uri, GLib.FileTest.EXISTS))
-            uri = Me.path + '/icons/flag.png';
-
-        return  new Gio.FileIcon({ file: Gio.File.new_for_path(uri) });
     }
 
     _redisplay() {
@@ -361,6 +338,7 @@ var DockBox = GObject.registerClass({
             this._label.hide();
 
         this._recordMainButtonPosition();
+        this.emit('dock-updated');
     }
 
     _recordMainButtonPosition() {
@@ -629,7 +607,7 @@ var DockBox = GObject.registerClass({
     }
 
     getDragActor() {
-        return this._createMainButton();
+        return this._mainButton.createDragButton();
     }
 
     getDragActorSource() {
@@ -682,8 +660,6 @@ var DockBox = GObject.registerClass({
         this._aroundButtonManager.destroy();
         Main.layoutManager.removeChrome(this._label);
         Main.layoutManager.removeChrome(this);
-        Main.layoutManager.removeChrome(this._mainButton);
         this._mainButton.destroy();
-        this._mainButton = null;
     }
 });

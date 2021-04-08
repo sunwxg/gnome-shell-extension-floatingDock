@@ -30,8 +30,12 @@
   background-color: #eeeeec; }
 
 #floating-dock-main-button {
-  border-radius: 9px;
+  border-radius: 39px;
   padding: 8px; }
+
+.transent-button {
+  background-color: rgba(46, 52, 54, 0.4);
+}
 
 #floating-dock-around-button {
   border-radius: 9px;

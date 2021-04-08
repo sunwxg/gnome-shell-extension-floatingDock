@@ -29,11 +29,6 @@ var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
             this.destroy();
         });
 
-        if (source.vimMode) {
-            this.sourceActor.disconnect(this._keyPressId);
-            this._keyPressId = 0;
-        }
-
         this.actor.hide();
         Main.uiGroup.add_actor(this.actor);
     }
