@@ -90,13 +90,13 @@ class MainButton extends St.Button {
             this.icon = new St.Icon({ gicon: this._createButtonIcon(), });
             this.container.add_child(this.icon);
         }
-        this.remove_style_class_name('transent-button');
+        this.remove_style_class_name('transparent-button');
     }
 
     _hideIcon() {
         if (this.container.get_children().length)
             this.container.remove_child(this.icon);
-        this.add_style_class_name('transent-button');
+        this.add_style_class_name('transparent-button');
     }
 
     vfunc_enter_event(crossingEvent) {
