@@ -50,6 +50,12 @@
       <description>
       </description>
     </key>
+    <key name="floating-dock-current-workspace-app" type="b">
+      <default>true</default>
+      <summary>Show current workspace applications</summary>
+      <description>
+      </description>
+    </key>
     <key name="floating-dock-indicator" type="s">
       <default>"dot"</default>
       <summary>Appliation indicator type</summary>

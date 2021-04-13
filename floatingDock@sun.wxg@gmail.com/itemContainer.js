@@ -40,7 +40,7 @@ var MyAppButton = GObject.registerClass({
         'in-preview': { param_types: [GObject.TYPE_BOOLEAN] },
     },
 }, class MyAppButton extends St.Button {
-    _init(app, vimMode, number, iconSize) {
+    _init(app, vimMode, number, iconSize, currentWorkspace) {
         super._init({ label: app.get_name(),
                       style_class: 'app-button',
                       y_align: Clutter.ActorAlign.CENTER,
@@ -51,6 +51,7 @@ var MyAppButton = GObject.registerClass({
         this.app = app;
         this.iconSize = iconSize;
         this.vimMode = vimMode;
+        this.currentWorkspace = currentWorkspace;
         this.time = 0;
 
         this.set_pivot_point(0.5, 0.5);
@@ -102,9 +103,16 @@ var MyAppButton = GObject.registerClass({
     }
 
     leftButtonClicked() {
-        let openNewWindow = this.app.can_open_new_window() &&
-                            !Util.appInActiveWorkspace(this.app);
-        let windows = Util.windowsInActiveWorkspace(this.app);
+        let openNewWindow, windows;
+        if (this.currentWorkspace) {
+            openNewWindow = this.app.can_open_new_window() &&
+                                !Util.appInActiveWorkspace(this.app);
+            windows = Util.windowsInActiveWorkspace(this.app);
+        } else {
+            openNewWindow = this.app.can_open_new_window() &&
+                                !Util.appIsOpen(this.app);
+            windows = this.app.get_windows();
+        }
 
         if (openNewWindow) {
             this.app.open_new_window(-1);
@@ -179,6 +187,12 @@ var MyAppButton = GObject.registerClass({
     }
 
     activateWindow(metaWindow) {
+        if (metaWindow && !this.currentWorkspace && !Util.windowInActiveWorkspace(metaWindow)) {
+            metaWindow.get_workspace().activate(global.get_current_time());
+            Main.activateWindow(metaWindow);
+            return;
+        }
+
         if (metaWindow) {
             let focusWindow = global.display.get_focus_window();
             if (metaWindow == focusWindow)
@@ -197,7 +211,7 @@ var MyAppButton = GObject.registerClass({
 
 var ItemContainer = GObject.registerClass(
 class ItemContainer extends St.Widget {
-    _init(app, vimMode, number, iconSize, indicator) {
+    _init(app, vimMode, number, iconSize, indicator, currentWorkspace) {
         super._init({ layout_manager: new Clutter.BinLayout(), });
 
         let buttonBox = new St.Widget({ style_class: 'button-box',
@@ -211,8 +225,9 @@ class ItemContainer extends St.Widget {
 
         this.app = app;
         this.number = number;
+        this.currentWorkspace = currentWorkspace;
 
-        let button = new MyAppButton(app, vimMode, number, iconSize);
+        let button = new MyAppButton(app, vimMode, number, iconSize, currentWorkspace);
         this.button = button;
         buttonBox.add_child(button);
 
@@ -237,9 +252,11 @@ class ItemContainer extends St.Widget {
 
     _updateRunningStyle() {
         let windows = this.app.get_windows();
-        windows = windows.filter( (window) => {
-            return Util.windowInActiveWorkspace(window);
-        });
+        if (this.currentWorkspace) {
+            windows = windows.filter( (window) => {
+                return Util.windowInActiveWorkspace(window);
+            });
+        }
         this._indicator.value = windows.length;
     }
 

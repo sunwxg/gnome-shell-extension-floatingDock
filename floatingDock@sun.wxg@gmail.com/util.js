@@ -102,3 +102,8 @@ function windowsInActiveWorkspace(app) {
         }
         return current;
 }
+
+function appIsOpen(app) {
+        let windows = app.get_windows();
+        return windows.length > 0 ? true : false;
+}

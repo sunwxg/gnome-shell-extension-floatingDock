@@ -20,6 +20,7 @@ const APP_LIST = 'floating-dock-app-list';
 const USE_FAVORITES = 'floating-dock-icon-favorites';
 const KEEP_OPEN = 'floating-dock-keep-open';
 const INDICATOR = 'floating-dock-indicator';
+const CURRENT_WORKSPACE = 'floating-dock-current-workspace-app';
 
 var ITEM_ANIMATION_TIME = 200;
 
@@ -102,6 +103,12 @@ var DockBox = GObject.registerClass({
             this.queueRedisplay();
         });
 
+        this._currentWorkspaceApp = this.settings.get_boolean(CURRENT_WORKSPACE);
+        this.currentWorkspaceAppID = this.settings.connect("changed::" + CURRENT_WORKSPACE, () => {
+            this._currentWorkspaceApp = this.settings.get_boolean(CURRENT_WORKSPACE);
+            this.queueRedisplay();
+        });
+
         this.installChangedID = this._appSystem.connect('installed-changed', () => {
             AppFavorites.getAppFavorites().reload();
             this.queueRedisplay();
@@ -176,15 +183,17 @@ var DockBox = GObject.registerClass({
     _addApps() {
         let running = this._appSystem.get_running();
 
-        running = running.filter(function(app) {
-            return Util.appInActiveWorkspace(app);
-        });
+        if (this._currentWorkspaceApp) {
+            running = running.filter(function(app) {
+                return Util.appInActiveWorkspace(app);
+            });
+        }
 
         for (let i = 0; i < running.length; i++) {
             if (this._findInBox(running[i]))
                 continue;
 
-            let item = new ItemContainer(running[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator);
+            let item = new ItemContainer(running[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator, this._currentWorkspaceApp);
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
@@ -200,7 +209,7 @@ var DockBox = GObject.registerClass({
         let favorites = AppFavorites.getAppFavorites().getFavoriteMap();
 
         for (let i in favorites) {
-            let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator);
+            let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator, this._currentWorkspaceApp);
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
@@ -215,7 +224,7 @@ var DockBox = GObject.registerClass({
     _addCustomerApp() {
         for (let i in this._userApps) {
             let app = this._appSystem.lookup_app(this._userApps[i]);
-            let item = new ItemContainer(app, this._vimMode, this._itemNumber++, this.iconSize, this._indicator);
+            let item = new ItemContainer(app, this._vimMode, this._itemNumber++, this.iconSize, this._indicator, this._currentWorkspaceApp);
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
@@ -650,6 +659,10 @@ var DockBox = GObject.registerClass({
             this.settings.disconnect(this.useFavoritesID);
         if (this.appListID)
             this.settings.disconnect(this.appListID);
+        if (this.indicatorChangedID)
+            this.settings.disconnect(this.indicatorChangedID);
+        if (this.currentWorkspaceAppID)
+            this.settings.disconnect(this.currentWorkspaceAppID);
         if (this.installChangedID)
             this._appSystem.disconnect(this.installChangedID);
         if (this.appFavoritesChangedID)
