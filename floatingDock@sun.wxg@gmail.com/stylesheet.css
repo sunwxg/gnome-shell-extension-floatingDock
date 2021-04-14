@@ -5,21 +5,28 @@
   border-radius: 9px;
   background-color: rgba(46, 52, 54, 0.3); }
 
+#floating-dock .item-container {
+}
+
 #floating-dock .button-box {
-  margin: 8px 8px 8px 8px; }
+  padding: 8px; }
 
 #floating-dock .button-box:hover {
   border-radius: 9px;
   background-color: rgba(46, 52, 54, 0.4); }
 
 #floating-dock .app-running-dash {
-  height: 3px;
-  width: 15px;
+  height: 5px;
+  width: 10px;
   margin-bottom: 2px;
-  background-color: #1b6acb; }
+  background-color: red; }
 
 #floating-dock .app-running-dot {
-  color: red; }
+  height: 8px;
+  width: 8px;
+  border-radius: 5px;
+  margin-bottom: 1px;
+  background-color: red; }
 
 #floating-dock .app-button {
   padding: 0px; }

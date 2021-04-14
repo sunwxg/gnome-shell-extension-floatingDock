@@ -191,34 +191,71 @@
             <property name="margin-bottom">10</property>
             <property name="label-xalign">0</property>
             <child>
-              <object class="GtkBox" id="Indicator">
+              <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="margin-start">25</property>
-                <property name="margin-end">25</property>
-                <property name="margin-top">5</property>
-                <property name="margin-bottom">5</property>
-                <property name="spacing">20</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkLabel">
+                  <object class="GtkBox" id="Indicator">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Indicator type</property>
+                    <property name="margin-start">25</property>
+                    <property name="margin-end">25</property>
+                    <property name="margin-top">5</property>
+                    <property name="margin-bottom">5</property>
+                    <property name="spacing">20</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Indicator type</property>
+                        <property name="xalign">0</property>
+                        <property name="hexpand">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="indicator_dot">
+                        <property name="label" translatable="yes">Dot</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="indicator_dash">
+                        <property name="label" translatable="yes">Dash</property>
+                        <property name="group">indicator_dot</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkCheckButton" id="indicator_dot">
-                    <property name="label" translatable="yes">Dot</property>
+                  <object class="GtkBox" id="Indicator_position">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="margin-start">25</property>
+                    <property name="margin-end">25</property>
+                    <property name="margin-top">5</property>
+                    <property name="margin-bottom">5</property>
+                    <property name="spacing">20</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Indicator position</property>
+                        <property name="xalign">0</property>
+                        <property name="hexpand">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="indicator_left">
+                        <property name="label" translatable="yes">Left</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="indicator_bottom">
+                        <property name="label" translatable="yes">Bottom</property>
+                        <property name="group">indicator_left</property>
+                      </object>
+                    </child>
                   </object>
-                </child>
-                <child>
-                  <object class="GtkCheckButton" id="indicator_dash">
-                    <property name="label" translatable="yes">Dash</property>
-                    <property name="group">indicator_dot</property>
-                  </object>
-                </child>
-                <child>
-                  <placeholder/>
                 </child>
               </object>
             </child>

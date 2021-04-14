@@ -212,7 +212,9 @@ var MyAppButton = GObject.registerClass({
 var ItemContainer = GObject.registerClass(
 class ItemContainer extends St.Widget {
     _init(app, vimMode, number, iconSize, indicator, currentWorkspace) {
-        super._init({ layout_manager: new Clutter.BinLayout(), });
+        super._init({
+            style_class: 'item-container',
+            layout_manager: new Clutter.BinLayout(), });
 
         let buttonBox = new St.Widget({ style_class: 'button-box',
                       layout_manager: new Clutter.BinLayout(),
@@ -231,14 +233,7 @@ class ItemContainer extends St.Widget {
         this.button = button;
         buttonBox.add_child(button);
 
-        switch (indicator) {
-        case 'dash':
-            this._indicator = new Indicator.Dash(iconSize);
-            break;
-        case 'dot':
-            this._indicator = new Indicator.Dot(iconSize);
-            break;
-        }
+        this._indicator = new Indicator.Indicator(indicator);
         this.add_child(this._indicator);
         this._indicator.show();
 

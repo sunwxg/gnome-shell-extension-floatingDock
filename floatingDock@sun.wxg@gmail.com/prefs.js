@@ -83,12 +83,30 @@ var Frame = class Frame {
         dash.connect("toggled", this.radioToggled.bind(this))
         dot.connect("toggled", this.radioToggled.bind(this))
 
-        switch (this._settings.get_string(INDICATOR)) {
+        let left = this._builder.get_object('indicator_left');
+        left.key = 'left';
+        let bottom = this._builder.get_object('indicator_bottom');
+        bottom.key = 'bottom';
+
+        left.connect("toggled", this.radioToggled.bind(this))
+        bottom.connect("toggled", this.radioToggled.bind(this))
+
+        let [type, position] = this._settings.get_value(INDICATOR).deep_unpack();
+        switch (type) {
         case 'dash':
             dash.set_active(true);
             break;
         case 'dot':
             dot.set_active(true);
+            break;
+        }
+
+        switch (position) {
+        case 'left':
+            left.set_active(true);
+            break;
+        case 'bottom':
+            bottom.set_active(true);
             break;
         }
     }
@@ -97,7 +115,23 @@ var Frame = class Frame {
         if (!(button.get_active()))
             return;
 
-        this._settings.set_string(INDICATOR, button.key);
+        let [type, position] = this._settings.get_value(INDICATOR).deep_unpack();
+        switch (button.key) {
+        case 'left':
+            position = 'left';
+            break;
+        case 'bottom':
+            position = 'bottom';
+            break;
+        case 'dot':
+            type = 'dot';
+            break;
+        case 'dash':
+            type = 'dash';
+            break;
+        }
+        this._settings.set_value(INDICATOR,
+                                new GLib.Variant('as', [type ,position]));
     }
 
     addDirectionCombo() {

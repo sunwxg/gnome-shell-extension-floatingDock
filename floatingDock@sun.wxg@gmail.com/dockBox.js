@@ -97,9 +97,9 @@ var DockBox = GObject.registerClass({
             this.queueRedisplay();
         });
 
-        this._indicator = this.settings.get_string(INDICATOR);
+        this._indicator = this.settings.get_value(INDICATOR).deep_unpack();
         this.indicatorChangedID = this.settings.connect("changed::" + INDICATOR, () => {
-            this._indicator = this.settings.get_string(INDICATOR);
+            this._indicator = this.settings.get_value(INDICATOR).deep_unpack();
             this.queueRedisplay();
         });
 

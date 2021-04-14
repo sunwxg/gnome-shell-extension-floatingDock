@@ -56,8 +56,8 @@
       <description>
       </description>
     </key>
-    <key name="floating-dock-indicator" type="s">
-      <default>"dot"</default>
+    <key name="floating-dock-indicator" type="as">
+      <default>["dot", "left"]</default>
       <summary>Appliation indicator type</summary>
       <description>
       </description>
