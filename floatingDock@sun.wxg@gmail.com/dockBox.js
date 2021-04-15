@@ -266,14 +266,13 @@ var DockBox = GObject.registerClass({
         if (!item)
             return;
 
-        let  windows = Util.windowsInActiveWorkspace(item.button.app);
-        if (newWindow || !Util.appInActiveWorkspace(item.button.app)) {
+        let windows = this._currentWorkspaceApp ? Util.windowsInActiveWorkspace(item.button.app)
+                                                : item.button.app.get_windows();
+        if (newWindow || (windows.length == 0)) {
             item.button.newWindow = newWindow;
             item.button.app.open_new_window(-1);
-
         } else if ( windows.length == 1) {
             this.activateWindow(windows[0]);
-
         }  else if (windows.length > 1) {
             this._inPreviewMode = true;
             item.button._showPreviews();
