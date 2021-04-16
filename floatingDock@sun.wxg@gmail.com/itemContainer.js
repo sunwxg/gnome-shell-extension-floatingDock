@@ -187,6 +187,8 @@ var MyAppButton = GObject.registerClass({
     }
 
     activateWindow(metaWindow) {
+        this.emit('activate-window');
+
         if (metaWindow && !this.currentWorkspace && !Util.windowInActiveWorkspace(metaWindow)) {
             metaWindow.get_workspace().activate(global.get_current_time());
             Main.activateWindow(metaWindow);
@@ -200,8 +202,6 @@ var MyAppButton = GObject.registerClass({
             else
                 Main.activateWindow(metaWindow);
         }
-
-        this.emit('activate-window');
     }
 
     animateLaunch() {
