@@ -260,3 +260,37 @@ class ItemContainer extends St.Widget {
             this.app.disconnect(this._stateChangedId);
     }
 });
+
+const ControlsState = {
+    HIDDEN: 0,
+    WINDOW_PICKER: 1,
+    APP_GRID: 2,
+};
+
+var ApplicationsButton = GObject.registerClass({
+    Signals: {
+        'activate-window': {},
+    },
+}, class ApplicationsButton extends St.Button {
+    _init(iconSize) {
+        super._init({ style_class: 'button-box',
+                    track_hover: true,
+                    can_focus: true,
+        });
+
+        this.icon = new St.Icon({ icon_name: 'view-app-grid-symbolic',
+                                icon_size: iconSize,
+                                style_class: 'show-apps-icon',
+                                track_hover: true });
+        this.set_child(this.icon);
+
+        this.isApplicationButton = true;
+
+        this.connect('clicked', this._clicked.bind(this));
+    }
+
+    _clicked() {
+        Main.overview.show(ControlsState.APP_GRID);
+        this.emit('activate-window');
+    }
+});

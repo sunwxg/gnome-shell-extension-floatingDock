@@ -7,6 +7,7 @@ const AppFavorites = imports.ui.appFavorites;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const ItemContainer = Me.imports.itemContainer.ItemContainer;
+const ApplicationsButton = Me.imports.itemContainer.ApplicationsButton;
 const NUMBER_TO_CHAR_UPPERCASE = Me.imports.util.NUMBER_TO_CHAR_UPPERCASE;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 const Util = Me.imports.util;
@@ -21,6 +22,7 @@ const USE_FAVORITES = 'floating-dock-icon-favorites';
 const KEEP_OPEN = 'floating-dock-keep-open';
 const INDICATOR = 'floating-dock-indicator';
 const CURRENT_WORKSPACE = 'floating-dock-current-workspace-app';
+const APPLICATIONS_BUTTON = 'floating-dock-applications-button';
 
 var ITEM_ANIMATION_TIME = 200;
 
@@ -109,6 +111,12 @@ var DockBox = GObject.registerClass({
             this.queueRedisplay();
         });
 
+        this._applicationButton = this.settings.get_boolean(APPLICATIONS_BUTTON);
+        this.applicationButtonID = this.settings.connect("changed::" + APPLICATIONS_BUTTON, () => {
+            this._applicationButton = this.settings.get_boolean(APPLICATIONS_BUTTON);
+            this.queueRedisplay();
+        });
+
         this.installChangedID = this._appSystem.connect('installed-changed', () => {
             AppFavorites.getAppFavorites().reload();
             this.queueRedisplay();
@@ -152,10 +160,13 @@ var DockBox = GObject.registerClass({
 
         this._itemNumber = 0;
         if (this._useFavorites)
-            this._getFavorites();
+            this._addFavorites();
         else
             this._addCustomerApp();
         this._addApps();
+
+        if (this._applicationButton)
+            this._addApplicationButton();
 
         this._showDock(false);
     }
@@ -172,6 +183,8 @@ var DockBox = GObject.registerClass({
         let children = this._box.get_children();
         let result = false;
         for (let i = 0; i < children.length; i++) {
+            if (children[i].isApplicationButton)
+                continue;
             if (children[i].app.id == app.id) {
                 result = true;
                 break;
@@ -205,7 +218,7 @@ var DockBox = GObject.registerClass({
         }
     }
 
-    _getFavorites() {
+    _addFavorites() {
         let favorites = AppFavorites.getAppFavorites().getFavoriteMap();
 
         for (let i in favorites) {
@@ -236,6 +249,12 @@ var DockBox = GObject.registerClass({
         }
     }
 
+    _addApplicationButton() {
+        let button = new ApplicationsButton(this.iconSize); 
+        button.connect('activate-window', this._activateWindow.bind(this));
+        this._box.add_child(button);
+    }
+
     _activateWindow() {
         this._showApp = this._keepOpen;
         this._showDock(false);
@@ -245,6 +264,9 @@ var DockBox = GObject.registerClass({
         let children = this._box.get_children();
         let window = null;
         children.forEach( (item) => {
+            if (item.isApplicationButton)
+                return;
+
             let w = item.button.findPreviewMenu(number);
             if (w != null)
                 window = w;
@@ -260,6 +282,8 @@ var DockBox = GObject.registerClass({
     _appItemSelected(number, newWindow) {
         let children = this._box.get_children();
         let item = children.find( (element) => {
+            if (element.isApplicationButton)
+                return false;
             return element.number == number;
         });
 
@@ -629,6 +653,8 @@ var DockBox = GObject.registerClass({
     _updateMenuStyle() {
         let children = this._box.get_children();
         children.forEach( (item) => {
+            if (item.isApplicationButton)
+                return;
             let button = item.button;
             if (button._previewMenu != null) {
                 button._previewMenu.destroy();
@@ -662,6 +688,8 @@ var DockBox = GObject.registerClass({
             this.settings.disconnect(this.indicatorChangedID);
         if (this.currentWorkspaceAppID)
             this.settings.disconnect(this.currentWorkspaceAppID);
+        if (this.applicationButtonID)
+            this.settings.disconnect(this.applicationButtonID);
         if (this.installChangedID)
             this._appSystem.disconnect(this.installChangedID);
         if (this.appFavoritesChangedID)

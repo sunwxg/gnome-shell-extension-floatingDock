@@ -21,6 +21,7 @@ const USE_FAVORITES = 'floating-dock-icon-favorites';
 const KEEP_OPEN = 'floating-dock-keep-open';
 const INDICATOR = 'floating-dock-indicator';
 const CURRENT_WORKSPACE = 'floating-dock-current-workspace-app';
+const APPLICATIONS_BUTTON = 'floating-dock-applications-button';
 
 const DIRECTION_LIST = {
     "up": "up",
@@ -64,6 +65,7 @@ var Frame = class Frame {
         dock_expand.append(this.addDirectionCombo());
         dock_expand.append(this.addItemSwitch('Keep dock expanded', KEEP_OPEN));
         dock_expand.append(this.addItemSwitch('Show current workspace applications', CURRENT_WORKSPACE));
+        dock_expand.append(this.addItemSwitch('Show applications button', APPLICATIONS_BUTTON));
 
         icon_box.append(this.addIconSizeCombo());
         icon_box.append(this.addIconFile());

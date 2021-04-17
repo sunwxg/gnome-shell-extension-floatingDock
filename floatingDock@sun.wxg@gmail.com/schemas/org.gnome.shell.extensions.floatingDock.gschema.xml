@@ -51,8 +51,14 @@
       </description>
     </key>
     <key name="floating-dock-current-workspace-app" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Show current workspace applications</summary>
+      <description>
+      </description>
+    </key>
+    <key name="floating-dock-applications-button" type="b">
+      <default>true</default>
+      <summary>Show applications button</summary>
       <description>
       </description>
     </key>
