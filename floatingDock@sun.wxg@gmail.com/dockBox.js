@@ -34,17 +34,17 @@ var DockBox = GObject.registerClass({
         'dock-updated': {},
     },
 }, class DockBox extends St.BoxLayout {
-    _init(direction, iconSize, settings) {
+    _init(params) {
         super._init({ name: 'floating-dock',
                       can_focus: true,
                       reactive: true,
                       x_align: Clutter.ActorAlign.CENTER });
 
-        this.settings = settings;
-        this.iconSize = iconSize;
-        this.direction = direction;
+        this.settings = params.settings;
+        this.iconSize = params.iconSize;
+        this.direction = params.direction;
 
-        this._mainButton = new MainButton(iconSize, settings);
+        this._mainButton = new MainButton(params.iconSize, params.settings);
         this._mainButton._delegate = this;
         this._draggable = DND.makeDraggable(this._mainButton,
                                             { restoreOnSuccess: false,
@@ -70,9 +70,6 @@ var DockBox = GObject.registerClass({
         Main.layoutManager.addChrome(this._label);
 
         this._keepOpen = this.settings.get_boolean(KEEP_OPEN);
-        this.keepOpenID = this.settings.connect("changed::" + KEEP_OPEN, () => {
-            this._keepOpen = this.settings.get_boolean(KEEP_OPEN);
-        });
         this._showApp = this._keepOpen;
 
         this._vimMode = false;
@@ -111,6 +108,9 @@ var DockBox = GObject.registerClass({
     }
 
     _connectSignals() {
+        this.keepOpenID = this.settings.connect("changed::" + KEEP_OPEN, () => {
+            this._keepOpen = this.settings.get_boolean(KEEP_OPEN);
+        });
         this.useFavoritesID = this.settings.connect("changed::" + USE_FAVORITES, () => {
             this._useFavorites = this.settings.get_boolean(USE_FAVORITES);
             this.queueRedisplay();

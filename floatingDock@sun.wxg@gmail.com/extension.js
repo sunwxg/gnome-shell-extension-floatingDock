@@ -25,21 +25,22 @@ class FloatDock {
         this._gsettings = ExtensionUtils.getSettings(SCHEMA);
         gsettings = this._gsettings;
 
-        this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
-        this.iconSize = this._gsettings.get_int(ICON_SIZE);
+        let params = {direction: Util.getPosition(this._gsettings.get_string(DIRECTION)),
+                      iconSize: this._gsettings.get_int(ICON_SIZE),
+                      settings: this._gsettings };
 
-        this.dockBox = new DockBox(this.direction, this.iconSize, this._gsettings);
+        this.dockBox = new DockBox(params);
 
         this.directionID = this._gsettings.connect("changed::" + DIRECTION, () => {
-            this.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
+            params.direction = Util.getPosition(this._gsettings.get_string(DIRECTION));
             this.dockBox.destroy();
-            this.dockBox = new DockBox(this.direction, this.iconSize, this._gsettings);
+            this.dockBox = new DockBox(params);
         });
 
         this.iconsizeID = this._gsettings.connect("changed::" + ICON_SIZE, () => {
-            this.iconSize = this._gsettings.get_int(ICON_SIZE);
+            params.iconSize = this._gsettings.get_int(ICON_SIZE);
             this.dockBox.destroy();
-            this.dockBox = new DockBox(this.direction, this.iconSize, this._gsettings);
+            this.dockBox = new DockBox(params);
         });
 
         this._addKeybinding();
