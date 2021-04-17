@@ -90,6 +90,27 @@ var DockBox = GObject.registerClass({
 
         this._workId = Main.initializeDeferredWork(this, this._redisplay.bind(this));
 
+        this._connectSignals();
+
+        this.connect('style-changed', () => { this.queueRedisplay.bind(this) });
+        this.connect('show', () => { this._showDock(false); });
+
+        this.connect('dock-updated', () => {
+            if (this._showApp)
+                this._mainButton.showIcon(true);
+            else
+                this._mainButton.showIcon(false);
+        });
+
+        this._aroundButtonManager = new AroundButtonManager(this.iconSize, this._mainButton);
+
+        Main.layoutManager.addChrome(this, { trackFullscreen: true });
+
+        this._mainButton.set_position(this._mainButtonX, this._mainButtonY);
+        this._monitorChanged();
+    }
+
+    _connectSignals() {
         this.useFavoritesID = this.settings.connect("changed::" + USE_FAVORITES, () => {
             this._useFavorites = this.settings.get_boolean(USE_FAVORITES);
             this.queueRedisplay();
@@ -135,23 +156,6 @@ var DockBox = GObject.registerClass({
 
         this._workspaceChangedID = global.workspace_manager.connect('active-workspace-changed',
                                                                     this.queueRedisplay.bind(this));
-
-        this.connect('style-changed', () => { this.queueRedisplay.bind(this) });
-        this.connect('show', () => { this._showDock(false); });
-
-        this.connect('dock-updated', () => {
-            if (this._showApp)
-                this._mainButton.showIcon(true);
-            else
-                this._mainButton.showIcon(false);
-        });
-
-        this._aroundButtonManager = new AroundButtonManager(this.iconSize, this._mainButton);
-
-        Main.layoutManager.addChrome(this, { trackFullscreen: true });
-
-        this._mainButton.set_position(this._mainButtonX, this._mainButtonY);
-        this._monitorChanged();
     }
 
     _redisplay() {
@@ -205,8 +209,14 @@ var DockBox = GObject.registerClass({
         for (let i = 0; i < running.length; i++) {
             if (this._findInBox(running[i]))
                 continue;
-
-            let item = new ItemContainer(running[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator, this._currentWorkspaceApp);
+            let item = new ItemContainer({
+                app: running[i],
+                vimMode: this._vimMode,
+                number: this._itemNumber++,
+                iconSize: this.iconSize,
+                indicator: this._indicator,
+                currentWorkspace: this._currentWorkspaceApp
+            });
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
@@ -222,7 +232,14 @@ var DockBox = GObject.registerClass({
         let favorites = AppFavorites.getAppFavorites().getFavoriteMap();
 
         for (let i in favorites) {
-            let item = new ItemContainer(favorites[i], this._vimMode, this._itemNumber++, this.iconSize, this._indicator, this._currentWorkspaceApp);
+            let item = new ItemContainer({
+                app: favorites[i],
+                vimMode: this._vimMode,
+                number: this._itemNumber++,
+                iconSize: this.iconSize,
+                indicator: this._indicator,
+                currentWorkspace: this._currentWorkspaceApp
+            });
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;
@@ -236,8 +253,15 @@ var DockBox = GObject.registerClass({
 
     _addCustomerApp() {
         for (let i in this._userApps) {
-            let app = this._appSystem.lookup_app(this._userApps[i]);
-            let item = new ItemContainer(app, this._vimMode, this._itemNumber++, this.iconSize, this._indicator, this._currentWorkspaceApp);
+            let application = this._appSystem.lookup_app(this._userApps[i]);
+            let item = new ItemContainer({
+                app: application,
+                vimMode: this._vimMode,
+                number: this._itemNumber++,
+                iconSize: this.iconSize,
+                indicator: this._indicator,
+                currentWorkspace: this._currentWorkspaceApp
+            });
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
                 this._inPreviewMode = state;

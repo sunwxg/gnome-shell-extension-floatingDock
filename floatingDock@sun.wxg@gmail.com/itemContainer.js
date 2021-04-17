@@ -16,11 +16,11 @@ const Indicator = Me.imports.indicator;
 
 var MyAppIcon = GObject.registerClass({
 }, class MyAppIcon extends St.Widget {
-    _init(app, vimMode, number, iconSize) {
+    _init(params) {
         super._init();
 
-        this.app = app;
-        this.iconSize = iconSize;
+        this.app = params.app;
+        this.iconSize = params.iconSize;
 
         this._icon = new St.Widget({ layout_manager: new Clutter.BinLayout() });
         this._icon.destroy_all_children();
@@ -29,8 +29,8 @@ var MyAppIcon = GObject.registerClass({
         let appicon = this.app.create_icon_texture(this.iconSize);
         this._icon.add_child(appicon);
 
-        if (vimMode)
-            this._icon.add_child(CreateNumberIcon(number, this.iconSize));
+        if (params.vimMode)
+            this._icon.add_child(CreateNumberIcon(params.number, this.iconSize));
     }
 });
 
@@ -40,18 +40,23 @@ var MyAppButton = GObject.registerClass({
         'in-preview': { param_types: [GObject.TYPE_BOOLEAN] },
     },
 }, class MyAppButton extends St.Button {
-    _init(app, vimMode, number, iconSize, currentWorkspace) {
-        super._init({ label: app.get_name(),
+    _init(params) {
+        super._init({ label: params.app.get_name(),
                       style_class: 'app-button',
                       y_align: Clutter.ActorAlign.CENTER,
-                      reactive: vimMode ? false : true,
+                      reactive: params.vimMode ? false : true,
         });
 
-        this.set_child(new MyAppIcon(app, vimMode, number, iconSize));
-        this.app = app;
-        this.iconSize = iconSize;
-        this.vimMode = vimMode;
-        this.currentWorkspace = currentWorkspace;
+        this.set_child(new MyAppIcon({
+            app: params.app,
+            vimMode: params.vimMode,
+            number: params.number,
+            iconSize: params.iconSize,
+        }));
+        this.app = params.app;
+        this.iconSize = params.iconSize;
+        this.vimMode = params.vimMode;
+        this.currentWorkspace = params.currentWorkspace;
         this.time = 0;
 
         this.set_pivot_point(0.5, 0.5);
@@ -211,7 +216,7 @@ var MyAppButton = GObject.registerClass({
 
 var ItemContainer = GObject.registerClass(
 class ItemContainer extends St.Widget {
-    _init(app, vimMode, number, iconSize, indicator, currentWorkspace) {
+    _init(params) {
         super._init({
             style_class: 'item-container',
             layout_manager: new Clutter.BinLayout(), });
@@ -220,20 +225,20 @@ class ItemContainer extends St.Widget {
                       layout_manager: new Clutter.BinLayout(),
                       x_expand: true,
                       y_expand: true,
-                      reactive: vimMode ? false : true,
-                      track_hover: vimMode ? false : true,
+                      reactive: params.vimMode ? false : true,
+                      track_hover: params.vimMode ? false : true,
         });
         this.add_child(buttonBox);
 
-        this.app = app;
-        this.number = number;
-        this.currentWorkspace = currentWorkspace;
+        this.app = params.app;
+        this.number = params.number;
+        this.currentWorkspace = params.currentWorkspace;
 
-        let button = new MyAppButton(app, vimMode, number, iconSize, currentWorkspace);
+        let button = new MyAppButton(params);
         this.button = button;
         buttonBox.add_child(button);
 
-        this._indicator = new Indicator.Indicator(indicator);
+        this._indicator = new Indicator.Indicator(params.indicator);
         this.add_child(this._indicator);
         this._indicator.show();
 
