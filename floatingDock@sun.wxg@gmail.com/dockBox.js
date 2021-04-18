@@ -274,7 +274,7 @@ var DockBox = GObject.registerClass({
     }
 
     _addApplicationButton() {
-        let button = new ApplicationsButton(this.iconSize); 
+        let button = new ApplicationsButton(this.iconSize, this._vimMode); 
         button.connect('activate-window', this._activateWindow.bind(this));
         this._box.add_child(button);
     }

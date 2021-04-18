@@ -277,10 +277,11 @@ var ApplicationsButton = GObject.registerClass({
         'activate-window': {},
     },
 }, class ApplicationsButton extends St.Button {
-    _init(iconSize) {
+    _init(iconSize, vimMode) {
         super._init({ style_class: 'button-box',
                     track_hover: true,
                     can_focus: true,
+                    reactive: vimMode ? false : true,
         });
 
         this.icon = new St.Icon({ icon_name: 'view-app-grid-symbolic',
