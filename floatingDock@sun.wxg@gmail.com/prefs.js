@@ -207,7 +207,7 @@ var Frame = class Frame {
         });
 
         let setting_label = new Gtk.Label({  xalign: 0 });
-        setting_label.set_markup("Main button icon");
+        setting_label.set_markup("Change control button icon");
         this.setting_entry = new Gtk.Entry({ hexpand: true, margin_start: 20 });
 
         this.setting_entry.set_text(this._settings.get_string(ICON_FILE));
