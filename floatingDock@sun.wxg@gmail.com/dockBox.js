@@ -77,6 +77,7 @@ var DockBox = GObject.registerClass({
         this._inPreviewMode = false;
         this._inPreviewButton = null;
         this._timeoutId = 0;
+        this._inOverview = false;
         [this._mainButtonX, this._mainButtonY] = this.settings.get_value(DOCK_POSITION).deep_unpack();
         this._useFavorites = this.settings.get_boolean(USE_FAVORITES);
         this._appSystem = Shell.AppSystem.get_default();
@@ -147,10 +148,12 @@ var DockBox = GObject.registerClass({
         this.appStateChangedID = this._appSystem.connect('app-state-changed', this.queueRedisplay.bind(this));
 
         this._overViewShownID = Main.overview.connect('showing', () => {
-            this.hide();
+            this._inOverview = true;
+            this._activateWindow();
             this._mainButton.hide(); });
         this._overViewHiddenID = Main.overview.connect('hiding', () => {
-            this.show();
+            this._inOverview = false;
+            this._activateWindow();
             this._mainButton.show(); });
         this._monitorChangedID = Main.layoutManager.connect('monitors-changed', this._monitorChanged.bind(this));
 
@@ -281,6 +284,8 @@ var DockBox = GObject.registerClass({
 
     _activateWindow() {
         this._showApp = this._keepOpen;
+        if (this._inOverview)
+            this._showApp = false;
         this._showDock(false);
     }
 
