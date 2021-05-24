@@ -40,7 +40,7 @@ var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
         this.addMenuItem(this._menuSection);
 
         let windows = this._source.app.get_windows();
-        if (this.currentWorkspace) {
+        if (this._source.currentWorkspace) {
             windows = windows.filter( (window) => {
                 return Util.windowInActiveWorkspace(window);
             });
