@@ -235,6 +235,9 @@ var DockBox = GObject.registerClass({
         let favorites = AppFavorites.getAppFavorites().getFavoriteMap();
 
         for (let i in favorites) {
+            if (favorites[i] == null)
+                continue;
+
             let item = new ItemContainer({
                 app: favorites[i],
                 vimMode: this._vimMode,
@@ -257,6 +260,9 @@ var DockBox = GObject.registerClass({
     _addCustomerApp() {
         for (let i in this._userApps) {
             let application = this._appSystem.lookup_app(this._userApps[i]);
+            if (application == null)
+                continue;
+
             let item = new ItemContainer({
                 app: application,
                 vimMode: this._vimMode,
