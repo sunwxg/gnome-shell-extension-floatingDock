@@ -120,9 +120,17 @@ class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
         });
     }
 
-    vfunc_button_press_event() {
+    vfunc_button_release_event() {
         this._getTopMenu().close();
         this._button.activateWindow(this._window);
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    vfunc_touch_event(touchEvent) {
+        if (touchEvent.type == Clutter.EventType.TOUCH_END) {
+            this._getTopMenu().close();
+            this._button.activateWindow(this._window);
+        }
         return Clutter.EVENT_PROPAGATE;
     }
 
