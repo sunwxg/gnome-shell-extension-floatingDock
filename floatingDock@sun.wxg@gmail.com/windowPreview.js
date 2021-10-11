@@ -25,9 +25,6 @@ var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
 
         this.iconSize = iconSize;
         this._source = source;
-        this._source.connect('destroy', () => {
-            this.destroy();
-        });
 
         this.actor.hide();
         Main.uiGroup.add_actor(this.actor);

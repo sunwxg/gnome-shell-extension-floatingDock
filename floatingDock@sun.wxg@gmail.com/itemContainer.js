@@ -5,6 +5,8 @@ const AppDisplay = imports.ui.appDisplay;
 const IconGrid = imports.ui.iconGrid;
 const Main = imports.ui.main;
 const Meta = imports.gi.Meta;
+const { AppMenu } = imports.ui.appMenu;
+const BoxPointer = imports.ui.boxpointer;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -166,14 +168,19 @@ var MyAppButton = GObject.registerClass({
 
     _popupMenu() {
         if (!this._menu) {
-            this._menu = new AppDisplay.AppIconMenu(this, St.Side.LEFT);
+            this._menu = new AppMenu(this, St.Side.LEFT, {
+                favoritesSection: true,
+                showSingleWindows: true,
+            });
+            this._menu.setApp(this.app);
             this._menu.connect('activate-window', (menu, window) => {
                 this.activateWindow(window); });
 
+            Main.uiGroup.add_actor(this._menu.actor);
             this._menuManager.addMenu(this._menu);
         }
 
-        this._menu.popup();
+        this._menu.open(BoxPointer.PopupAnimation.FULL);
         this._menuManager.ignoreRelease();
 
         return false;
