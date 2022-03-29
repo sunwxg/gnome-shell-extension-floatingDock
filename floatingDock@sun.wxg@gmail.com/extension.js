@@ -54,7 +54,7 @@ class FloatDock {
                               this._gsettings,
                               Meta.KeyBindingFlags.NONE,
                               ModeType.ALL,
-                              () => { this.dockBox.showItem(); });
+                              () => { this.dockBox.vimShow(); });
     }
 
     destroy() {

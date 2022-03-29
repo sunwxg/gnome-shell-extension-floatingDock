@@ -26,8 +26,24 @@ var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
         this.iconSize = iconSize;
         this._source = source;
 
-        this.actor.hide();
+        this.actor.connectObject('captured-event',
+            this._onCapturedEvent.bind(this), this);
+
         Main.uiGroup.add_actor(this.actor);
+        this.actor.hide();
+    }
+
+    _onCapturedEvent(actor, event) {
+        if (event.type() === Clutter.EventType.KEY_PRESS) {
+            let symbol = event.get_key_symbol();
+            let number = NUMBER_TO_CHAR.findIndex( (element) => {
+                                                    return element == symbol; });
+            if (number >= 0) {
+                this._source.activateWindow(this._windows[number]);
+                return Clutter.EVENT_STOP;
+            }
+        }
+        return Clutter.EVENT_PROPAGATE;
     }
 
     _redisplay() {
@@ -42,8 +58,11 @@ var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
                 return Util.windowInActiveWorkspace(window);
             });
         }
+
+        this._windows = [];
         let k = 0;
         for (let i in windows) {
+            this._windows.push(windows[i]);
             let menuItem = new WindowPreviewMenuItem(windows[i], this._source, k++, this.iconSize);
             this._menuSection.addMenuItem(menuItem);
         }

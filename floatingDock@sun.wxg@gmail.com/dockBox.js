@@ -292,6 +292,7 @@ var DockBox = GObject.registerClass({
         this._showApp = this._keepOpen;
         if (this._inOverview)
             this._showApp = false;
+        this._vimMode = false;
         this._showDock(false);
     }
 
@@ -370,7 +371,8 @@ var DockBox = GObject.registerClass({
         this._showApp = this._keepOpen;
         this._vimMode = false;
         this._mainButton.reactive = true;
-        Main.popModal(this);
+        Main.popModal(this._grab);
+        this._grab = null;
         this._redisplay();
     }
 
@@ -395,8 +397,9 @@ var DockBox = GObject.registerClass({
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                     duration: ITEM_ANIMATION_TIME,
                     onComplete: () => this.hide() });
-            } else
+            } else {
                 this.hide();
+            }
         }
 
         if (this._vimMode)
@@ -457,7 +460,7 @@ var DockBox = GObject.registerClass({
         this._label.set_position(x, y);
     }
 
-    showItem() {
+    vimShow() {
         this._vimMode = true;
         this._mainButton.reactive = false;
         if (!this._showApp) {
@@ -469,7 +472,13 @@ var DockBox = GObject.registerClass({
 
         Main.queueDeferredWork(this._workId);
 
-        Main.pushModal(this);
+        let grab = Main.pushModal(this, { actionMode: Shell.ActionMode.POPUP});
+        if (grab.get_seat_state() === Clutter.GrabState.NONE) {
+            Main.popModal(grab);
+            return;
+        }
+
+        this._grab = grab;
     }
 
     _monitorChanged() {
@@ -636,10 +645,10 @@ var DockBox = GObject.registerClass({
             return Clutter.EVENT_STOP;
         }
 
-        number = NUMBER_TO_CHAR_UPPERCASE.findIndex( (element) => {
+        let uppercase = NUMBER_TO_CHAR_UPPERCASE.findIndex( (element) => {
                                                 return element == symbol; });
-        if (number >= 0 && !this._inPreviewMode) {
-            this._appItemSelected(number, true);
+        if (uppercase >= 0 && !this._inPreviewMode) {
+            this._appItemSelected(uppercase, true);
             return Clutter.EVENT_STOP;
         }
 

@@ -74,7 +74,6 @@ class AroundButtonManager extends St.Widget {
         Main.layoutManager.addChrome(button);
         button.hide();
 
-        this._grabHelper.addActor(button);
         button.connect('animation-complete', this.grabFocus.bind(this));
         button.connect('button-clicked', this.popupClose.bind(this));
         button.connect('direction-changed', this.directionChanged.bind(this));
@@ -132,7 +131,6 @@ class AroundButtonManager extends St.Widget {
             this._mainButton.disconnect(this._mainButtonHideId);
 
         this._aroundButtons.forEach( button => {
-            this._grabHelper.removeActor(button);
             Main.layoutManager.removeChrome(button);
             button.destroy();
         });
