@@ -353,6 +353,7 @@ var DockBox = GObject.registerClass({
     _mainButtonClicked() {
         this._showApp = !this._showApp;
         this._showDock(true);
+        this._aroundButtonManager.popupClose();
     }
 
     _mainButtonPress(actor, event) {

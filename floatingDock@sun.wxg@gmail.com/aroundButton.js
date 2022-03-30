@@ -2,7 +2,6 @@ const { Clutter, Gio, GObject, Shell, St } = imports.gi;
 
 const Main = imports.ui.main;
 const Params = imports.misc.params;
-const GrabHelper = imports.ui.grabHelper;
 const SystemActions = imports.misc.systemActions;
 
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -44,7 +43,6 @@ class AroundButtonManager extends St.Widget {
 
         this.iconSize = iconSize;
         this._mainButton = mainButton;
-        this._grabHelper = new GrabHelper.GrabHelper(this, { actionMode: Shell.ActionMode.POPUP });
         this.showAroundButton = false;
 
         this._aroundButtons = [];
@@ -65,16 +63,16 @@ class AroundButtonManager extends St.Widget {
                 //break;
         //}
 
+        this._aroundButtons.forEach( button => { this.add_child(button); });
+        Main.layoutManager.addChrome(this);
         this._mainButtonHideId = this._mainButton.connect('hide', () => this.popupClose() );
     }
 
     createButton(id, number) {
         let button = new AroundButton(id, number, this.iconSize, this._mainButton);
 
-        Main.layoutManager.addChrome(button);
         button.hide();
 
-        button.connect('animation-complete', this.grabFocus.bind(this));
         button.connect('button-clicked', this.popupClose.bind(this));
         button.connect('direction-changed', this.directionChanged.bind(this));
         return button;
@@ -91,24 +89,11 @@ class AroundButtonManager extends St.Widget {
     popupClose() {
         this.showAroundButton = false;
         this.hideButton(false);
-        this._grabHelper.ungrab({ actor: this._grabButton });
     }
 
     directionChanged(button, direction) {
         this.popupClose();
         this._gsettings.set_string(DIRECTION_ID, direction);
-    }
-
-    grabFocus(button, number) {
-        if (number != this._aroundButtons.length - 1)
-            return;
-
-        this._grabButton = button;
-        this._grabHelper.grab({
-            actor: button,
-            focus: button,
-            onUngrab: () => this.hideButton(true),
-        });
     }
 
     showButton(animation) {
@@ -130,10 +115,8 @@ class AroundButtonManager extends St.Widget {
         if (this._mainButtonHideId)
             this._mainButton.disconnect(this._mainButtonHideId);
 
-        this._aroundButtons.forEach( button => {
-            Main.layoutManager.removeChrome(button);
-            button.destroy();
-        });
+        this._aroundButtons.forEach( button => { button.destroy(); });
+        Main.layoutManager.removeChrome(this);
 
         super.destroy();
     }
