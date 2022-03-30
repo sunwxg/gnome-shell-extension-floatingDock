@@ -72,7 +72,7 @@ class AroundButtonManager extends St.Widget {
         let button = new AroundButton(id, number, this.iconSize, this._mainButton);
 
         button.hide();
-
+        button.connect('animation-complete', this.hideWidget.bind(this));
         button.connect('button-clicked', this.popupClose.bind(this));
         button.connect('direction-changed', this.directionChanged.bind(this));
         return button;
@@ -89,6 +89,7 @@ class AroundButtonManager extends St.Widget {
     popupClose() {
         this.showAroundButton = false;
         this.hideButton(false);
+        this.hide();
     }
 
     directionChanged(button, direction) {
@@ -97,6 +98,7 @@ class AroundButtonManager extends St.Widget {
     }
 
     showButton(animation) {
+        this.show();
         if (animation)
             this._aroundButtons.forEach( button => { button.showAnimation(); });
         else
@@ -109,6 +111,13 @@ class AroundButtonManager extends St.Widget {
         else
             this._aroundButtons.forEach( button => { button.hide(); });
         this.showAroundButton = false;
+    }
+
+    hideWidget(button, number) {
+        if (number != this._aroundButtons.length - 1)
+            return;
+
+        this.hide();
     }
 
     destroy() {
@@ -274,8 +283,8 @@ var AroundButton = GObject.registerClass({
             scale_y: 0.8,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             duration: ITEM_ANIMATION_TIME,
-            onComplete: () => {
-                    this.emit('animation-complete', this.number); }
+            onComplete: () => {}
+                    //this.emit('animation-complete', this.number); }
             });
     }
 
@@ -290,7 +299,10 @@ var AroundButton = GObject.registerClass({
             scale_y: 0,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             duration: ITEM_ANIMATION_TIME,
-            onComplete: () => this.hide() });
+            onComplete: () => {
+                this.hide();
+                this.emit('animation-complete', this.number); }
+        });
     }
 
     _onClicked() {
