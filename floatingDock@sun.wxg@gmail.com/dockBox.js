@@ -312,7 +312,7 @@ var DockBox = GObject.registerClass({
             return;
 
         this.activateWindow(window);
-        this._hideAppList();
+        this._vimClose();
     }
 
     _appItemSelected(number, newWindow) {
@@ -339,7 +339,7 @@ var DockBox = GObject.registerClass({
             return;
         }
 
-        this._hideAppList();
+        this._vimClose();
     }
 
     activateWindow(window) {
@@ -351,9 +351,9 @@ var DockBox = GObject.registerClass({
     }
 
     _mainButtonClicked() {
+        this._aroundButtonManager.popupClose();
         this._showApp = !this._showApp;
         this._showDock(true);
-        this._aroundButtonManager.popupClose();
     }
 
     _mainButtonPress(actor, event) {
@@ -368,7 +368,7 @@ var DockBox = GObject.registerClass({
         return Clutter.EVENT_PROPAGATE;
     }
 
-    _hideAppList() {
+    _vimClose() {
         this._showApp = this._keepOpen;
         this._vimMode = false;
         this._mainButton.reactive = true;
@@ -390,6 +390,8 @@ var DockBox = GObject.registerClass({
             } else
                 this._box.setSlide(1);
 
+            Main.layoutManager.trackChrome(this);
+
         } else {
             this.set_position(this._mainButtonX, this._mainButtonY);
             if (animation) {
@@ -397,8 +399,13 @@ var DockBox = GObject.registerClass({
                 this._box.ease_property('@layout.slide', 0, {
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                     duration: ITEM_ANIMATION_TIME,
-                    onComplete: () => this.hide() });
+                    onComplete: () => {
+                        Main.layoutManager.untrackChrome(this);
+                        this.hide();
+                    }
+                });
             } else {
+                Main.layoutManager.untrackChrome(this);
                 this.hide();
             }
         }
@@ -472,6 +479,9 @@ var DockBox = GObject.registerClass({
         this._aroundButtonManager.popupClose();
 
         Main.queueDeferredWork(this._workId);
+
+        if (this._grab != null)
+            return;
 
         let grab = Main.pushModal(this, { actionMode: Shell.ActionMode.POPUP});
         if (grab.get_seat_state() === Clutter.GrabState.NONE) {
@@ -631,7 +641,7 @@ var DockBox = GObject.registerClass({
 
         if (symbol == Clutter.KEY_Escape) {
             this._inPreviewMode = false;
-            this._hideAppList();
+            this._vimClose();
             return Clutter.EVENT_STOP;
         }
 
