@@ -228,7 +228,7 @@ var Frame = class Frame {
 
     showFileChooserDialog() {
         let fileChooser = new Gtk.FileChooserDialog({ title: "Select File" });
-        fileChooser.set_transient_for(this.widget.get_parent().get_parent());
+        fileChooser.set_transient_for(this.widget.get_root());
         fileChooser.set_default_response(1);
 
         let filter = new Gtk.FileFilter();
@@ -258,13 +258,13 @@ var Frame = class Frame {
 
         let appChooserWindow = this._builder.get_object('app_chooser_window');
         addButton.connect('clicked', () => {
-            appChooserWindow.set_transient_for(this.widget.get_parent().get_parent());
+            appChooserWindow.set_transient_for(this.widget.get_root());
             appChooserWindow.show();
         });
 
 
         let appChooserWidget = this._builder.get_object('app_chooser_widget');
-        appChooserWidget.connect('application_activated', (actor, app) => {
+        appChooserWidget.connect('application_selected', (actor, app) => {
             appChooserWindow.hide()
 
             let name = app.get_filename().split('/');
