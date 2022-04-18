@@ -390,8 +390,6 @@ var DockBox = GObject.registerClass({
             } else
                 this._box.setSlide(1);
 
-            Main.layoutManager.trackChrome(this);
-
         } else {
             this.set_position(this._mainButtonX, this._mainButtonY);
             if (animation) {
@@ -400,12 +398,10 @@ var DockBox = GObject.registerClass({
                     mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                     duration: ITEM_ANIMATION_TIME,
                     onComplete: () => {
-                        Main.layoutManager.untrackChrome(this);
                         this.hide();
                     }
                 });
             } else {
-                Main.layoutManager.untrackChrome(this);
                 this.hide();
             }
         }
