@@ -18,12 +18,10 @@ const DIRECTION = 'floating-dock-direction';
 const ICON_SIZE = 'floating-dock-icon-size';
 const ICON_FILE = 'floating-dock-icon-file';
 
-var gsettings = null;
 
 class FloatDock {
     constructor() {
         this._gsettings = ExtensionUtils.getSettings(SCHEMA);
-        gsettings = this._gsettings;
 
         let params = {direction: Util.getPosition(this._gsettings.get_string(DIRECTION)),
                       iconSize: this._gsettings.get_int(ICON_SIZE),
