@@ -11,6 +11,7 @@ const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
 const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
 
 
+const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
 const DIRECTION = 'floating-dock-direction';
 
 const PREVIEW_MAX_WIDTH = 250;
@@ -166,7 +167,7 @@ function getDirectionStyle(source) {
 
     let style = '';
     let direction;
-    switch (Util.getPosition(Extension.gsettings.get_string(DIRECTION))) {
+    switch (Util.getPosition(ExtensionUtils.getSettings(SCHEMA).get_string(DIRECTION))) {
     case St.Side.TOP:
     case St.Side.BOTTOM:
         if (sourceAllocation.x1 > (workArea.x + workArea.width / 2)) {
