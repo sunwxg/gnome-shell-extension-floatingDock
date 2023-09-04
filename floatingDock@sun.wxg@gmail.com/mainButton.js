@@ -1,21 +1,25 @@
-const { GLib, Clutter, Gio, GObject, Shell, St } = imports.gi;
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 
-const Main = imports.ui.main;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const SwitchWorkspace = Me.imports.switchWorkspace.SwitchWorkspace;
+import {SwitchWorkspace} from './switchWorkspace.js';
 
 const ICON_FILE = 'floating-dock-icon-file';
 const DELAY = 3000;
 
-var MainButton = GObject.registerClass(
+export var MainButton = GObject.registerClass(
 class MainButton extends St.Button {
-    _init(iconSize, settings) {
+    _init(iconSize, settings, dir) {
         super._init({ name: 'floating-dock-main-button' });
 
         this.settings = settings;
         this.iconSize = iconSize;
+        this.dir = dir;
         this._watchId = 0;
         this._mouseIn = false;
         this._show = false;
@@ -32,12 +36,13 @@ class MainButton extends St.Button {
                                   icon_size: this.iconSize });
         this.container.add_child(this.icon);
 
+        let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         this.transparentIcon = new St.Widget({
             name: 'floating-dock-transparent-button',
             x: 0,
             y: 0,
-            width: this.iconSize,
-            height: this.iconSize,
+            width: this.iconSize * scaleFactor,
+            height: this.iconSize * scaleFactor,
         });
 
         let switchWorkspace = new SwitchWorkspace();
@@ -60,7 +65,7 @@ class MainButton extends St.Button {
     _createButtonIcon() {
         let uri = this.settings.get_string(ICON_FILE)
         if (!GLib.file_test(uri, GLib.FileTest.EXISTS))
-            uri = Me.path + '/icons/flag.png';
+            uri = this.dir.get_path() + '/icons/flag.png';
 
         return  new Gio.FileIcon({ file: Gio.File.new_for_path(uri) });
     }

@@ -1,19 +1,18 @@
-const { GLib, Clutter, Gio, GObject, Shell, St } = imports.gi;
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 
-const Main = imports.ui.main;
-const DND = imports.ui.dnd;
-const AppFavorites = imports.ui.appFavorites;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const ItemContainer = Me.imports.itemContainer.ItemContainer;
-const ApplicationsButton = Me.imports.itemContainer.ApplicationsButton;
-const NUMBER_TO_CHAR_UPPERCASE = Me.imports.util.NUMBER_TO_CHAR_UPPERCASE;
-const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
-const Util = Me.imports.util;
-const ItemBox = Me.imports.itemBox.ItemBox;
-const AroundButtonManager = Me.imports.aroundButton.AroundButtonManager;
-const MainButton = Me.imports.mainButton.MainButton;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
+import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
+import {ItemContainer, ApplicationsButton} from './itemContainer.js';
+import {NUMBER_TO_CHAR_UPPERCASE, NUMBER_TO_CHAR} from './util.js';
+import {ItemBox} from './itemBox.js';
+import {AroundButtonManager} from './aroundButton.js';
+import {MainButton} from './mainButton.js';
 
 const ICON_FILE = 'floating-dock-icon-file';
 const DOCK_POSITION = 'floating-dock-position';
@@ -29,7 +28,7 @@ var ITEM_ANIMATION_TIME = 200;
 var WINDOW_DND_SIZE = 256;
 var DRAGGING_WINDOW_OPACITY = 0;
 
-var DockBox = GObject.registerClass({
+export var DockBox = GObject.registerClass({
     Signals: {
         'dock-updated': {},
     },
@@ -43,8 +42,9 @@ var DockBox = GObject.registerClass({
         this.settings = params.settings;
         this.iconSize = params.iconSize;
         this.direction = params.direction;
+        this.dir = params.dir;
 
-        this._mainButton = new MainButton(params.iconSize, params.settings);
+        this._mainButton = new MainButton(params.iconSize, params.settings, params.dir);
         this._mainButton._delegate = this;
         this._draggable = DND.makeDraggable(this._mainButton,
                                             { restoreOnSuccess: false,
@@ -100,7 +100,7 @@ var DockBox = GObject.registerClass({
                 this._mainButton.showIcon(false);
         });
 
-        this._aroundButtonManager = new AroundButtonManager(this.iconSize, this._mainButton);
+        this._aroundButtonManager = new AroundButtonManager(this.iconSize, this._mainButton, this.settings, this.dir);
 
         Main.layoutManager.addChrome(this, { trackFullscreen: true });
 
@@ -218,7 +218,9 @@ var DockBox = GObject.registerClass({
                 number: this._itemNumber++,
                 iconSize: this.iconSize,
                 indicator: this._indicator,
-                currentWorkspace: this._currentWorkspaceApp
+                currentWorkspace: this._currentWorkspaceApp,
+                settings: this.settings,
+                dir: this.dir
             });
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
@@ -244,7 +246,9 @@ var DockBox = GObject.registerClass({
                 number: this._itemNumber++,
                 iconSize: this.iconSize,
                 indicator: this._indicator,
-                currentWorkspace: this._currentWorkspaceApp
+                currentWorkspace: this._currentWorkspaceApp,
+                settings: this.settings,
+                dir: this.dir
             });
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
@@ -269,7 +273,9 @@ var DockBox = GObject.registerClass({
                 number: this._itemNumber++,
                 iconSize: this.iconSize,
                 indicator: this._indicator,
-                currentWorkspace: this._currentWorkspaceApp
+                currentWorkspace: this._currentWorkspaceApp,
+                settings: this.settings,
+                dir: this.dir
             });
             item.button.connect('activate-window', this._activateWindow.bind(this));
             item.button.connect('in-preview', (button, state) => {
@@ -292,6 +298,9 @@ var DockBox = GObject.registerClass({
         this._showApp = this._keepOpen;
         if (this._inOverview)
             this._showApp = false;
+        if (this._vimMode)
+            this._vimClose()
+
         this._vimMode = false;
         this._showDock(false);
     }
@@ -629,7 +638,7 @@ var DockBox = GObject.registerClass({
     }
 
     vfunc_key_press_event(keyEvent) {
-        let symbol = keyEvent.keyval;
+        let symbol = keyEvent.get_key_symbol();
         if (symbol == Clutter.KEY_Escape && this._inPreviewMode) {
             this._inPreviewButton._previewMenu.close();
             return Clutter.EVENT_STOP;

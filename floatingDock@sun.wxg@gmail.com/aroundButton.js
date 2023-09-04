@@ -1,11 +1,12 @@
-const { Clutter, Gio, GObject, Shell, St } = imports.gi;
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 
-const Main = imports.ui.main;
-const Params = imports.misc.params;
-const SystemActions = imports.misc.systemActions;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Params from 'resource:///org/gnome/shell/misc/params.js';
+import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
 
 const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
 const APP_LIST = 'floating-dock-app-list';
@@ -34,12 +35,13 @@ var Actions = GObject.registerClass({
 
 let actions = new Actions({});
 
-var AroundButtonManager = GObject.registerClass(
+export var AroundButtonManager = GObject.registerClass(
 class AroundButtonManager extends St.Widget {
-    _init(iconSize, mainButton) {
+    _init(iconSize, mainButton, settings, dir) {
         super._init({});
 
-        this._gsettings = ExtensionUtils.getSettings(SCHEMA);
+        this._gsettings = settings;
+        this._dir = dir;
 
         this.iconSize = iconSize;
         this._mainButton = mainButton;
@@ -69,7 +71,7 @@ class AroundButtonManager extends St.Widget {
     }
 
     createButton(id, number) {
-        let button = new AroundButton(id, number, this.iconSize, this._mainButton);
+        let button = new AroundButton(id, number, this.iconSize, this._mainButton, this._dir);
 
         button.hide();
         button.connect('animation-complete', this.hideWidget.bind(this));
@@ -138,7 +140,7 @@ var AroundButton = GObject.registerClass({
         'direction-changed': { param_types: [GObject.TYPE_STRING] },
     },
 }, class AroundButton extends St.Button {
-    _init(id, number, iconSize, mainButton) {
+    _init(id, number, iconSize, mainButton, dir) {
         super._init({ name: 'floating-dock-around-button',
                       y_align: Clutter.ActorAlign.CENTER,
                       reactive: true,
@@ -155,6 +157,7 @@ var AroundButton = GObject.registerClass({
         this.mainButton = mainButton;
         this.set_pivot_point(0.5, 0.5);
         this.scale = 0.8;
+        this.scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
 
         this._systemActions = new SystemActions.getDefault();
 
@@ -169,7 +172,7 @@ var AroundButton = GObject.registerClass({
                                      style_class: 'system-action-icon' });
             this.set_child(icon);
         } else {
-            let uri = Me.path + '/icons/' + this.id + '.png';
+            let uri = dir.get_path() + '/icons/' + this.id + '.png';
             let gicon = new Gio.FileIcon({ file: Gio.File.new_for_path(uri) });
             let icon = new St.Icon({ gicon: gicon,
                                      icon_size: this.iconSize });
@@ -188,9 +191,7 @@ var AroundButton = GObject.registerClass({
      *       5
      */
     _circle(box) {
-        let boxWidth = box.x2 - box.x1;
-        let boxHeight = box.y2 - box.y1;
-        let R = this.iconSize * 1.2;
+        let R = this.iconSize * 1.2 * this.scaleFactor;
 
         let x, y;
         if (this.number == 0) {
@@ -232,8 +233,8 @@ var AroundButton = GObject.registerClass({
      *  +----+----+----+
      */
     _square(box) {
-        let boxWidth = box.x2 - box.x1;
-        let boxHeight = box.y2 - box.y1;
+        let boxWidth = (box.x2 - box.x1) * this.scaleFactor;
+        let boxHeight = (box.y2 - box.y1) * this.scaleFactor;
 
         let x, y;
         if (this.number == 0) {

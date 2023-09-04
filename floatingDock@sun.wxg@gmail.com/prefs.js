@@ -1,15 +1,11 @@
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
-const Gtk = imports.gi.Gtk;
-const GdkPixbuf = imports.gi.GdkPixbuf;
-const Lang = imports.lang;
+import Adw from 'gi://Adw';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Gtk from 'gi://Gtk';
+import GdkPixbuf from 'gi://GdkPixbuf';
 
-const Gettext = imports.gettext.domain('gnome-shell-extensions');
-const _ = Gettext.gettext;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
 const HOTKEY = 'floating-dock-hotkey';
@@ -40,21 +36,12 @@ const ICON_SIZE_LIST = {
     16  : '16',
 };
 
-function init() {
-}
-
-function buildPrefsWidget() {
-    let frame = new Frame();
-
-    return frame.widget;
-}
-
 var Frame = class Frame {
-    constructor() {
-        this._settings = ExtensionUtils.getSettings(SCHEMA);
+    constructor(settings, dir) {
+        this._settings = settings;
 
         this._builder = new Gtk.Builder();
-        this._builder.add_from_file(Me.path + '/prefs.ui');
+        this._builder.add_from_file(dir.get_path() + '/prefs.ui');
 
         this.widget = this._builder.get_object('settings_notebook');
 
@@ -391,3 +378,10 @@ var Frame = class Frame {
         box.append(txt);
     }
 };
+
+export default class DictPrefs extends ExtensionPreferences {
+    getPreferencesWidget() {
+        let frame = new Frame(this.getSettings(), this.dir);
+        return frame.widget;
+    }
+}

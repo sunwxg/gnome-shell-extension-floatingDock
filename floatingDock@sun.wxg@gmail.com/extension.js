@@ -1,16 +1,14 @@
 // -*- mode: js2; indent-tabs-mode: nil; js2-basic-offset: 4 -*-
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
+import Clutter from 'gi://Clutter';
+import Gtk from 'gi://Gtk';
 
-const { Clutter, Gtk, Meta, Shell } = imports.gi;
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const Gettext = imports.gettext.domain('gnome-shell-extensions');
-const _ = Gettext.gettext;
-
-const Main = imports.ui.main;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const DockBox = Me.imports.dockBox.DockBox;
-const Util = Me.imports.util;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {DockBox} from './dockBox.js';
+import * as Util from './util.js';
 
 const SCHEMA = 'org.gnome.shell.extensions.floatingDock';
 const HOTKEY = 'floating-dock-hotkey';
@@ -20,11 +18,12 @@ const ICON_FILE = 'floating-dock-icon-file';
 
 
 class FloatDock {
-    constructor() {
-        this._gsettings = ExtensionUtils.getSettings(SCHEMA);
+    constructor(settings, dir) {
+        this._gsettings = settings;
 
         let params = {direction: Util.getPosition(this._gsettings.get_string(DIRECTION)),
                       iconSize: this._gsettings.get_int(ICON_SIZE),
+                      dir: dir,
                       settings: this._gsettings };
 
         this.dockBox = new DockBox(params);
@@ -63,29 +62,34 @@ class FloatDock {
     }
 }
 
-let floatDock;
-let _startupPreparedId = 0;
+export default class FloatingDockExtension extends Extension {
+    constructor(metadata) {
+        super(metadata);
+        this.floatDock = null;
+        this._startupPreparedId = 0;
+    }
 
-function init(metadata) {
-}
+    enable() {
+        this._settings = this.getSettings();
 
-function enable() {
-    // wait until the startup process has ended
-    if (Main.layoutManager._startingUp)
-        _startupPreparedId = Main.layoutManager.connect('startup-complete', () => enableFloatDock());
-    else
-        enableFloatDock();
-}
+        // wait until the startup process has ended
+        if (Main.layoutManager._startingUp)
+            this._startupPreparedId = Main.layoutManager.connect('startup-complete', () => this.enableFloatDock());
+        else
+            this.enableFloatDock();
+    }
 
-function enableFloatDock() {
-    if (_startupPreparedId)
-        Main.layoutManager.disconnect(_startupPreparedId);
-    _startupPreparedId = 0;
+    disable() {
+        this.floatDock.destroy();
+        this.floatDock = null;
+        this._settings = null;
+    }
 
-    floatDock = new FloatDock();
-}
+    enableFloatDock() {
+        if (this._startupPreparedId)
+            Main.layoutManager.disconnect(this._startupPreparedId);
+        this._startupPreparedId = 0;
 
-function disable() {
-    floatDock.destroy();
-    floatDock = null;
+        this.floatDock = new FloatDock(this._settings, this.dir);
+    }
 }

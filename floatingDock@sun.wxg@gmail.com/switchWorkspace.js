@@ -1,9 +1,10 @@
-const { Clutter, Meta } = imports.gi;
+import Clutter from 'gi://Clutter';
+import Meta from 'gi://Meta';
 
-const Main = imports.ui.main;
-const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as WorkspaceSwitcherPopup from 'resource:///org/gnome/shell/ui/workspaceSwitcherPopup.js';
 
-var SwitchWorkspace = class SwitchWorkspace {
+export var SwitchWorkspace = class SwitchWorkspace {
     constructor() {
         this.wm = global.workspace_manager;
         this._time = 0;
@@ -64,7 +65,7 @@ var SwitchWorkspace = class SwitchWorkspace {
                     this._workspaceSwitcherPopup = null;
                 });
             }
-            this._workspaceSwitcherPopup.display(direction, newWs.index());
+            this._workspaceSwitcherPopup.display(newWs.index());
         }
     }
 

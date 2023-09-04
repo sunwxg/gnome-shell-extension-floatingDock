@@ -1,6 +1,8 @@
-const { Clutter, GObject, St } = imports.gi;
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
 
-var ItemBox = GObject.registerClass(
+export var ItemBox = GObject.registerClass(
 class ItemBox extends St.Widget {
     _init(direction) {
         super._init({ style_class: 'item-box',

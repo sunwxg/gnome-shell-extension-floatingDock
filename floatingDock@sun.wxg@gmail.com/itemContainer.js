@@ -1,20 +1,21 @@
-const { Clutter, GObject, Shell, St } = imports.gi;
+import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
+import Meta from 'gi://Meta';
 
-const PopupMenu = imports.ui.popupMenu;
-const AppDisplay = imports.ui.appDisplay;
-const IconGrid = imports.ui.iconGrid;
-const Main = imports.ui.main;
-const Meta = imports.gi.Meta;
-const { AppMenu } = imports.ui.appMenu;
-const BoxPointer = imports.ui.boxpointer;
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as AppDisplay from 'resource:///org/gnome/shell/ui/appDisplay.js';
+import * as IconGrid from 'resource:///org/gnome/shell/ui/iconGrid.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
+import {AppMenu} from 'resource:///org/gnome/shell/ui/appMenu.js';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const NUMBER_TO_CHAR = Me.imports.util.NUMBER_TO_CHAR;
-const Util = Me.imports.util;
-const WindowPreview = Me.imports.windowPreview;
-const CreateNumberIcon = Me.imports.numberIcon.createNumberIcon;
-const Indicator = Me.imports.indicator;
+import * as Indicator from './indicator.js';
+import * as Util from './util.js';
+import * as WindowPreview from './windowPreview.js';
+import {NUMBER_TO_CHAR} from './util.js';
+import {CreateNumberIcon} from './numberIcon.js';
 
 var MyAppIcon = GObject.registerClass({
 }, class MyAppIcon extends St.Widget {
@@ -32,7 +33,7 @@ var MyAppIcon = GObject.registerClass({
         this._icon.add_child(appicon);
 
         if (params.vimMode)
-            this._icon.add_child(CreateNumberIcon(params.number, this.iconSize));
+            this._icon.add_child(CreateNumberIcon(params.number, this.iconSize, params.dir));
     }
 });
 
@@ -54,11 +55,14 @@ var MyAppButton = GObject.registerClass({
             vimMode: params.vimMode,
             number: params.number,
             iconSize: params.iconSize,
+            dir: params.dir,
         }));
         this.app = params.app;
         this.iconSize = params.iconSize;
         this.vimMode = params.vimMode;
         this.currentWorkspace = params.currentWorkspace;
+        this.dir = params.dir;
+        this.settings = params.settings;
         this.time = 0;
 
         this.set_pivot_point(0.5, 0.5);
@@ -73,7 +77,7 @@ var MyAppButton = GObject.registerClass({
 
     vfunc_button_press_event(buttonEvent) {
         const ret = super.vfunc_button_press_event(buttonEvent);
-        if (buttonEvent.button == 3) {
+        if (buttonEvent.get_button() == 3) {
             if (this._previewMenu && this._previewMenu.isOpen)
                 return ret;
 
@@ -135,7 +139,7 @@ var MyAppButton = GObject.registerClass({
 
     _showPreviews() {
         if (!this._previewMenu) {
-            this._previewMenu = new WindowPreview.WindowPreviewMenu(this, this.iconSize);
+            this._previewMenu = new WindowPreview.WindowPreviewMenu(this, this.iconSize, this.dir, this.settings);
             this._previewMenu.connect('open-state-changed',
                                       (menu, state) => { this.emit('in-preview', state); });
 
@@ -175,6 +179,10 @@ var MyAppButton = GObject.registerClass({
             this._menu.setApp(this.app);
             this._menu.connect('activate-window', (menu, window) => {
                 this.activateWindow(window); });
+            this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
+                if (!isPoppedUp)
+                    this.emit('activate-window');
+            });
 
             Main.uiGroup.add_actor(this._menu.actor);
             this._menuManager.addMenu(this._menu);
@@ -223,7 +231,7 @@ var MyAppButton = GObject.registerClass({
     }
 });
 
-var ItemContainer = GObject.registerClass(
+export var ItemContainer = GObject.registerClass(
 class ItemContainer extends St.Widget {
     _init(params) {
         super._init({
@@ -281,7 +289,7 @@ const ControlsState = {
     APP_GRID: 2,
 };
 
-var ApplicationsButton = GObject.registerClass({
+export var ApplicationsButton = GObject.registerClass({
     Signals: {
         'activate-window': {},
     },

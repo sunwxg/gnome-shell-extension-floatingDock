@@ -114,10 +114,6 @@
       <object class="GtkBox" id="settings_box">
         <property name="visible">True</property>
         <property name="can-focus">True</property>
-        <property name="margin-start">10</property>
-        <property name="margin-end">10</property>
-        <property name="margin-top">10</property>
-        <property name="margin-bottom">10</property>
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkFrame">

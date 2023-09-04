@@ -1,6 +1,8 @@
-const { Clutter, GObject, St } = imports.gi;
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 
-var Indicator = GObject.registerClass(
+export var Indicator = GObject.registerClass(
 class Indicator extends St.Widget {
     _init(indicator) {
         super._init({

@@ -1,6 +1,7 @@
-const { Clutter, St } = imports.gi;
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
 
-var NUMBER_TO_CHAR_UPPERCASE = [
+export var NUMBER_TO_CHAR_UPPERCASE = [
 Clutter.KEY_A,
 Clutter.KEY_B,
 Clutter.KEY_C,
@@ -29,7 +30,7 @@ Clutter.KEY_Y,
 Clutter.KEY_Z,
 ];
 
-var NUMBER_TO_CHAR = [
+export var NUMBER_TO_CHAR = [
  Clutter.KEY_a,
  Clutter.KEY_b,
  Clutter.KEY_c,
@@ -58,7 +59,7 @@ var NUMBER_TO_CHAR = [
  Clutter.KEY_z,
 ];
 
-function getPosition(direction) {
+export function getPosition(direction) {
     let StPosition;
     switch (direction) {
     case 'up':
@@ -79,7 +80,7 @@ function getPosition(direction) {
     return StPosition;
 }
 
-function appInActiveWorkspace(app) {
+export function appInActiveWorkspace(app) {
         let windows = app.get_windows();
         for ( let i in windows) {
             if (windowInActiveWorkspace(windows[i]))
@@ -88,12 +89,12 @@ function appInActiveWorkspace(app) {
         return false;
 }
 
-function windowInActiveWorkspace(window) {
+export function windowInActiveWorkspace(window) {
         let activeWorkspace = global.workspace_manager.get_active_workspace_index();
         return window.get_workspace().index() == activeWorkspace;
 }
 
-function windowsInActiveWorkspace(app) {
+export function windowsInActiveWorkspace(app) {
         let current = [];
         let windows = app.get_windows();
         for ( let i in windows) {
@@ -103,7 +104,7 @@ function windowsInActiveWorkspace(app) {
         return current;
 }
 
-function appIsOpen(app) {
+export function appIsOpen(app) {
         let windows = app.get_windows();
         return windows.length > 0 ? true : false;
 }
