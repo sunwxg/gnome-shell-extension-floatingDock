@@ -2,7 +2,6 @@ import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
-import Gtk from 'gi://Gtk';
 
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -16,7 +15,7 @@ const DIRECTION = 'floating-dock-direction';
 const PREVIEW_MAX_WIDTH = 250;
 const PREVIEW_MAX_HEIGHT = 150;
 
-export var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
+export const WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMenu {
     constructor(source, iconSize, dir, settings) {
         let direction, style;
         [direction, style] = getDirectionStyle(source, settings);
@@ -77,11 +76,11 @@ export var WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.PopupMe
     }
 };
 
-var WindowPreviewMenuSection = class WindowPreviewMenuSection extends PopupMenu.PopupMenuSection {
+const WindowPreviewMenuSection = class WindowPreviewMenuSection extends PopupMenu.PopupMenuSection {
     constructor() {
         super();
-        let scroll = new St.ScrollView({ hscrollbar_policy: Gtk.PolicyType.NEVER,
-                                         vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
+        let scroll = new St.ScrollView({ hscrollbar_policy: St.PolicyType.NEVER,
+                                         vscrollbar_policy: St.PolicyType.AUTOMATIC,
                                          enable_mouse_scrolling: true });
         this.actor = scroll;
         this.actor.add_actor(this.box);
@@ -89,7 +88,7 @@ var WindowPreviewMenuSection = class WindowPreviewMenuSection extends PopupMenu.
     }
 };
 
-var WindowPreviewMenuItem = GObject.registerClass(
+const WindowPreviewMenuItem = GObject.registerClass(
 class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
     _init(window, button, number, iconSize, dir) {
         super._init({});

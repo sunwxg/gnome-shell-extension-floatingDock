@@ -4,7 +4,7 @@ import Meta from 'gi://Meta';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as WorkspaceSwitcherPopup from 'resource:///org/gnome/shell/ui/workspaceSwitcherPopup.js';
 
-export var SwitchWorkspace = class SwitchWorkspace {
+export const SwitchWorkspace = class SwitchWorkspace {
     constructor() {
         this.wm = global.workspace_manager;
         this._time = 0;

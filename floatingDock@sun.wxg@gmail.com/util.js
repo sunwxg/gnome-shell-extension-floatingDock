@@ -1,7 +1,7 @@
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 
-export var NUMBER_TO_CHAR_UPPERCASE = [
+export const NUMBER_TO_CHAR_UPPERCASE = [
 Clutter.KEY_A,
 Clutter.KEY_B,
 Clutter.KEY_C,
@@ -30,7 +30,7 @@ Clutter.KEY_Y,
 Clutter.KEY_Z,
 ];
 
-export var NUMBER_TO_CHAR = [
+export const NUMBER_TO_CHAR = [
  Clutter.KEY_a,
  Clutter.KEY_b,
  Clutter.KEY_c,

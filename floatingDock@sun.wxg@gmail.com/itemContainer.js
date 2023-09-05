@@ -17,7 +17,7 @@ import * as WindowPreview from './windowPreview.js';
 import {NUMBER_TO_CHAR} from './util.js';
 import {CreateNumberIcon} from './numberIcon.js';
 
-var MyAppIcon = GObject.registerClass({
+const MyAppIcon = GObject.registerClass({
 }, class MyAppIcon extends St.Widget {
     _init(params) {
         super._init();
@@ -37,7 +37,7 @@ var MyAppIcon = GObject.registerClass({
     }
 });
 
-var MyAppButton = GObject.registerClass({
+const MyAppButton = GObject.registerClass({
     Signals: {
         'activate-window': {},
         'in-preview': { param_types: [GObject.TYPE_BOOLEAN] },
@@ -231,7 +231,7 @@ var MyAppButton = GObject.registerClass({
     }
 });
 
-export var ItemContainer = GObject.registerClass(
+export const ItemContainer = GObject.registerClass(
 class ItemContainer extends St.Widget {
     _init(params) {
         super._init({
@@ -289,7 +289,7 @@ const ControlsState = {
     APP_GRID: 2,
 };
 
-export var ApplicationsButton = GObject.registerClass({
+export const ApplicationsButton = GObject.registerClass({
     Signals: {
         'activate-window': {},
     },

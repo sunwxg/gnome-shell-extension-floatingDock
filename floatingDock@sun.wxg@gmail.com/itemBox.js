@@ -2,7 +2,7 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
-export var ItemBox = GObject.registerClass(
+export const ItemBox = GObject.registerClass(
 class ItemBox extends St.Widget {
     _init(direction) {
         super._init({ style_class: 'item-box',
@@ -17,7 +17,7 @@ class ItemBox extends St.Widget {
     }
 });
 
-var BoxSlideLayout = GObject.registerClass({
+const BoxSlideLayout = GObject.registerClass({
     Properties: {
         'slide': GObject.ParamSpec.double(
             'slide', 'slide', 'slide',

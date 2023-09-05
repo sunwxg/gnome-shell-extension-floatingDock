@@ -4,7 +4,6 @@ import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
-import Gtk from 'gi://Gtk';
 
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import {NUMBER_TO_CHAR} from './util.js';

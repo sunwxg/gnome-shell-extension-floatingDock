@@ -23,12 +23,12 @@ const INDICATOR = 'floating-dock-indicator';
 const CURRENT_WORKSPACE = 'floating-dock-current-workspace-app';
 const APPLICATIONS_BUTTON = 'floating-dock-applications-button';
 
-var ITEM_ANIMATION_TIME = 200;
+const ITEM_ANIMATION_TIME = 200;
 
-var WINDOW_DND_SIZE = 256;
-var DRAGGING_WINDOW_OPACITY = 0;
+const WINDOW_DND_SIZE = 256;
+const DRAGGING_WINDOW_OPACITY = 0;
 
-export var DockBox = GObject.registerClass({
+export const DockBox = GObject.registerClass({
     Signals: {
         'dock-updated': {},
     },

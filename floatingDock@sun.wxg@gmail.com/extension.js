@@ -2,7 +2,6 @@
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import Clutter from 'gi://Clutter';
-import Gtk from 'gi://Gtk';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -83,6 +82,10 @@ export default class FloatingDockExtension extends Extension {
         this.floatDock.destroy();
         this.floatDock = null;
         this._settings = null;
+
+        if (this._startupPreparedId)
+            Main.layoutManager.disconnect(this._startupPreparedId);
+        this._startupPreparedId = 0;
     }
 
     enableFloatDock() {

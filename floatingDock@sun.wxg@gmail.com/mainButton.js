@@ -12,7 +12,7 @@ import {SwitchWorkspace} from './switchWorkspace.js';
 const ICON_FILE = 'floating-dock-icon-file';
 const DELAY = 3000;
 
-export var MainButton = GObject.registerClass(
+export const MainButton = GObject.registerClass(
 class MainButton extends St.Button {
     _init(iconSize, settings, dir) {
         super._init({ name: 'floating-dock-main-button' });

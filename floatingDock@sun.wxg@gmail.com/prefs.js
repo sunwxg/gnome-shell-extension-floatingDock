@@ -36,7 +36,7 @@ const ICON_SIZE_LIST = {
     16  : '16',
 };
 
-var Frame = class Frame {
+const Frame = class Frame {
     constructor(settings, dir) {
         this._settings = settings;
 

@@ -18,7 +18,7 @@ const DIRECTION = ['up', 'down', 'right', 'left'];
 
 const ITEM_ANIMATION_TIME = 200;
 
-var Actions = GObject.registerClass({
+const Actions = GObject.registerClass({
     Signals: {
         'do': { param_types: [GObject.TYPE_STRING] },
     },
@@ -35,7 +35,7 @@ var Actions = GObject.registerClass({
 
 let actions = new Actions({});
 
-export var AroundButtonManager = GObject.registerClass(
+export const AroundButtonManager = GObject.registerClass(
 class AroundButtonManager extends St.Widget {
     _init(iconSize, mainButton, settings, dir) {
         super._init({});
@@ -133,7 +133,7 @@ class AroundButtonManager extends St.Widget {
     }
 });
 
-var AroundButton = GObject.registerClass({
+const AroundButton = GObject.registerClass({
     Signals: {
         'animation-complete': { param_types: [GObject.TYPE_INT] },
         'button-clicked': {},

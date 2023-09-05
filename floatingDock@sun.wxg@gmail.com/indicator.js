@@ -2,7 +2,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 
-export var Indicator = GObject.registerClass(
+export const Indicator = GObject.registerClass(
 class Indicator extends St.Widget {
     _init(indicator) {
         super._init({
@@ -68,7 +68,7 @@ class Indicator extends St.Widget {
 });
 
 /*
-var Dot = GObject.registerClass({
+const Dot = GObject.registerClass({
 }, class Dot extends St.DrawingArea {
     _init(iconSize) {
         super._init({ style_class: 'app-running-dot',
