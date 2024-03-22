@@ -184,7 +184,7 @@ const MyAppButton = GObject.registerClass({
                     this.emit('activate-window');
             });
 
-            Main.uiGroup.add_actor(this._menu.actor);
+            Main.uiGroup.add_child(this._menu.actor);
             this._menuManager.addMenu(this._menu);
         }
 

@@ -30,7 +30,7 @@ export const WindowPreviewMenu = class WindowPreviewMenu extends PopupMenu.Popup
         this.actor.connectObject('captured-event',
             this._onCapturedEvent.bind(this), this);
 
-        Main.uiGroup.add_actor(this.actor);
+        Main.uiGroup.add_child(this.actor);
         this.actor.hide();
     }
 
@@ -83,7 +83,7 @@ const WindowPreviewMenuSection = class WindowPreviewMenuSection extends PopupMen
                                          vscrollbar_policy: St.PolicyType.AUTOMATIC,
                                          enable_mouse_scrolling: true });
         this.actor = scroll;
-        this.actor.add_actor(this.box);
+        this.actor.add_child(this.box);
         this.actor._delegate = this;
     }
 };
