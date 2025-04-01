@@ -25,8 +25,6 @@ class MainButton extends St.Button {
         this._show = false;
 
         this.container = new St.Widget({
-            x: 0,
-            y: 0,
             width: this.iconSize,
             height: this.iconSize,
         });
