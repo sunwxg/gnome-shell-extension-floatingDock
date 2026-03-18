@@ -73,17 +73,13 @@ const MyAppButton = GObject.registerClass({
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
         this._menu = null;
-    }
 
-    vfunc_button_press_event(buttonEvent) {
-        const ret = super.vfunc_button_press_event(buttonEvent);
-        if (buttonEvent.get_button() == 3) {
-            if (this._previewMenu && this._previewMenu.isOpen)
-                return ret;
-
-            this._popupMenu();
-        }
-        return ret;
+        const rightClickGesture = new Clutter.ClickGesture({
+            required_button: Clutter.BUTTON_SECONDARY,
+            recognize_on_press: true,
+        });
+        rightClickGesture.connect('recognize', () => this._popupMenu());
+        this.add_action(rightClickGesture);
     }
 
     vfunc_clicked(button) {
@@ -150,7 +146,6 @@ const MyAppButton = GObject.registerClass({
             this._previewMenu.close();
         } else {
             this._previewMenu.popup();
-            this._previewMenuManager.ignoreRelease();
         }
 
         return false;
@@ -189,7 +184,6 @@ const MyAppButton = GObject.registerClass({
         }
 
         this._menu.open(BoxPointer.PopupAnimation.FULL);
-        this._menuManager.ignoreRelease();
 
         return false;
     }

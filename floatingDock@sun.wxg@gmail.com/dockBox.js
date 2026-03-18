@@ -489,11 +489,6 @@ export const DockBox = GObject.registerClass({
             return;
 
         let grab = Main.pushModal(this, { actionMode: Shell.ActionMode.POPUP});
-        if (grab.get_seat_state() === Clutter.GrabState.NONE) {
-            Main.popModal(grab);
-            return;
-        }
-
         this._grab = grab;
     }
 
