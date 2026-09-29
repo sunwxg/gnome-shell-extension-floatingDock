@@ -73,6 +73,8 @@ const MyAppButton = GObject.registerClass({
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
         this._menu = null;
+        this._menuActivateWindowId = 0;
+        this._menuOpenStateChangedId = 0;
 
         const rightClickGesture = new Clutter.ClickGesture({
             required_button: Clutter.BUTTON_SECONDARY,
@@ -80,6 +82,8 @@ const MyAppButton = GObject.registerClass({
         });
         rightClickGesture.connect('recognize', () => this._popupMenu());
         this.add_action(rightClickGesture);
+
+        this.connect('destroy', this._onDestroy.bind(this));
     }
 
     vfunc_clicked(button) {
@@ -172,9 +176,9 @@ const MyAppButton = GObject.registerClass({
                 showSingleWindows: true,
             });
             this._menu.setApp(this.app);
-            this._menu.connect('activate-window', (menu, window) => {
+            this._menuActivateWindowId = this._menu.connect('activate-window', (menu, window) => {
                 this.activateWindow(window); });
-            this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
+            this._menuOpenStateChangedId = this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
                 if (!isPoppedUp)
                     this.emit('activate-window');
             });
@@ -217,6 +221,17 @@ const MyAppButton = GObject.registerClass({
                 metaWindow.minimize();
             else
                 Main.activateWindow(metaWindow);
+        }
+    }
+
+    _onDestroy() {
+        if (this._menuActivateWindowId > 0) {
+            this._menu.disconnect(this._menuActivateWindowId);
+            this._menuActivateWindowId = 0;
+        }
+        if (this._menuOpenStateChangedId > 0) {
+            this._menu.disconnect(this._menuOpenStateChangedId);
+            this._menuOpenStateChangedId = 0;
         }
     }
 

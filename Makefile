@@ -2,7 +2,7 @@ PROJECT=floatingDock@sun.wxg@gmail.com
 
 schemas:
 	glib-compile-schemas ${PROJECT}/schemas/
-submit: schemas
+submit:
 	cd ${PROJECT}/ && zip -r ~/${PROJECT}.zip *
 
 install:

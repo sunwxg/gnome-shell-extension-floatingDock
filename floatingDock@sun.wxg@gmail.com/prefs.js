@@ -1,9 +1,7 @@
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
-import GdkPixbuf from 'gi://GdkPixbuf';
 
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
@@ -19,369 +17,278 @@ const INDICATOR = 'floating-dock-indicator';
 const CURRENT_WORKSPACE = 'floating-dock-current-workspace-app';
 const APPLICATIONS_BUTTON = 'floating-dock-applications-button';
 
-const DIRECTION_LIST = {
-    "up": "up",
-    "down": "down",
-    "right": "right",
-    "left": "left",
-};
+const DIRECTION_LIST = ['up', 'down', 'right', 'left'];
+const ICON_SIZE_LIST = [128, 96, 64, 48, 32, 24, 16];
+const INDICATOR_TYPE_LIST = ['dot', 'dash'];
+const INDICATOR_POSITION_LIST = ['left', 'bottom'];
 
-const ICON_SIZE_LIST = {
-    128 : '128',
-    96  : '96',
-    64  : '64',
-    48  : '48',
-    32  : '32',
-    24  : '24',
-    16  : '16',
-};
+const GITHUB_URL = 'https://github.com/sunwxg/gnome-shell-extension-floatingDock';
 
 const Frame = class Frame {
-    constructor(settings, dir) {
+    constructor(settings, window) {
         this._settings = settings;
+        this._window = window;
 
-        this._builder = new Gtk.Builder();
-        this._builder.add_from_file(dir.get_path() + '/prefs.ui');
-
-        this.widget = this._builder.get_object('settings_notebook');
-
-        let icon_box = this._builder.get_object('icon_box');
-        let dock_expand = this._builder.get_object('dock_expand');
-        let app_item = this._builder.get_object('app_item');
-
-        dock_expand.append(this.addDirectionCombo());
-        dock_expand.append(this.addItemSwitch('Keep dock expanded', KEEP_OPEN));
-        dock_expand.append(this.addItemSwitch('Show current workspace applications', CURRENT_WORKSPACE));
-        dock_expand.append(this.addItemSwitch('Show applications button', APPLICATIONS_BUTTON));
-
-        icon_box.append(this.addIconSizeCombo());
-        icon_box.append(this.addIconFile());
-
-        this.addIndicator();
-
-        app_item.append(this.addItemSwitch('Use system favorite applications', USE_FAVORITES));
-        app_item.append(this.addAppCustomer());
+        this.pages = [
+            this._createSettingsPage(),
+            this._createApplicationsPage(),
+            this._createAboutPage(),
+        ];
     }
 
-    addIndicator() {
-        let dash = this._builder.get_object('indicator_dash');
-        dash.key = 'dash';
-        let dot = this._builder.get_object('indicator_dot');
-        dot.key = 'dot';
-
-        dash.connect("toggled", this.radioToggled.bind(this))
-        dot.connect("toggled", this.radioToggled.bind(this))
-
-        let left = this._builder.get_object('indicator_left');
-        left.key = 'left';
-        let bottom = this._builder.get_object('indicator_bottom');
-        bottom.key = 'bottom';
-
-        left.connect("toggled", this.radioToggled.bind(this))
-        bottom.connect("toggled", this.radioToggled.bind(this))
-
-        let [type, position] = this._settings.get_value(INDICATOR).deep_unpack();
-        switch (type) {
-        case 'dash':
-            dash.set_active(true);
-            break;
-        case 'dot':
-            dot.set_active(true);
-            break;
-        }
-
-        switch (position) {
-        case 'left':
-            left.set_active(true);
-            break;
-        case 'bottom':
-            bottom.set_active(true);
-            break;
-        }
-    }
-
-    radioToggled(button) {
-        if (!(button.get_active()))
-            return;
-
-        let [type, position] = this._settings.get_value(INDICATOR).deep_unpack();
-        switch (button.key) {
-        case 'left':
-            position = 'left';
-            break;
-        case 'bottom':
-            position = 'bottom';
-            break;
-        case 'dot':
-            type = 'dot';
-            break;
-        case 'dash':
-            type = 'dash';
-            break;
-        }
-        this._settings.set_value(INDICATOR,
-                                new GLib.Variant('as', [type ,position]));
-    }
-
-    addDirectionCombo() {
-        let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 5,
-                                 margin_bottom: 5,
-                                 margin_start: 20,
-                                 margin_end: 20,
-        });
-        let setting_label = new Gtk.Label({ hexpand: true, xalign: 0 });
-        setting_label.set_markup("Dock direction");
-        hbox.append(setting_label);
-        hbox.append(this.directionCombo());
-
-        return hbox;
-    }
-
-    directionCombo() {
-        let combo = new Gtk.ComboBoxText();
-        combo.set_entry_text_column(0);
-
-        for (let l in DIRECTION_LIST) {
-            combo.append(l, DIRECTION_LIST[l]);
-        }
-        combo.set_active_id(this._settings.get_string(DIRECTION));
-
-        combo.connect('changed', () => {
-            this._settings.set_string(DIRECTION, combo.get_active_id());
+    _createSettingsPage() {
+        const page = new Adw.PreferencesPage({
+            title: 'Settings',
+            icon_name: 'preferences-system-symbolic',
         });
 
-        return combo;
+        const dockGroup = new Adw.PreferencesGroup({ title: 'Dock' });
+        this._addComboRow(dockGroup, 'Dock direction', DIRECTION_LIST,
+                          DIRECTION_LIST.indexOf(this._settings.get_string(DIRECTION)),
+                          index => { this._settings.set_string(DIRECTION, DIRECTION_LIST[index]); });
+        this._addSwitchRow(dockGroup, 'Keep dock expanded', KEEP_OPEN);
+        this._addSwitchRow(dockGroup, 'Show current workspace applications', CURRENT_WORKSPACE);
+        this._addSwitchRow(dockGroup, 'Show applications button', APPLICATIONS_BUTTON);
+        page.add(dockGroup);
+
+        const iconGroup = new Adw.PreferencesGroup({ title: 'Icon' });
+        const sizeLabels = ICON_SIZE_LIST.map(size => size.toString());
+        this._addComboRow(iconGroup, 'Icon size', sizeLabels,
+                          ICON_SIZE_LIST.indexOf(this._settings.get_int(ICON_SIZE)),
+                          index => { this._settings.set_int(ICON_SIZE, ICON_SIZE_LIST[index]); });
+        iconGroup.add(this._createIconFileRow());
+        page.add(iconGroup);
+
+        const indicatorGroup = new Adw.PreferencesGroup({ title: 'Indicator' });
+        const [type, position] = this._settings.get_value(INDICATOR).deep_unpack();
+        this._addComboRow(indicatorGroup, 'Indicator type', INDICATOR_TYPE_LIST,
+                          INDICATOR_TYPE_LIST.indexOf(type),
+                          index => { this._setIndicator(INDICATOR_TYPE_LIST[index], null); });
+        this._addComboRow(indicatorGroup, 'Indicator position', INDICATOR_POSITION_LIST,
+                          INDICATOR_POSITION_LIST.indexOf(position),
+                          index => { this._setIndicator(null, INDICATOR_POSITION_LIST[index]); });
+        page.add(indicatorGroup);
+
+        return page;
     }
 
-    addIconSizeCombo() {
-        let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 5,
-                                 margin_bottom: 5,
-                                 margin_start: 20,
-                                 margin_end: 20,
-        });
-        let setting_label = new Gtk.Label({ hexpand: true, xalign: 0 });
-        setting_label.set_markup("Icon size");
-        hbox.append(setting_label);
-        hbox.append(this.iconSizeCombo());
-
-        return hbox;
+    _setIndicator(type, position) {
+        let [currentType, currentPosition] = this._settings.get_value(INDICATOR).deep_unpack();
+        if (type === null)
+            type = currentType;
+        if (position === null)
+            position = currentPosition;
+        this._settings.set_value(INDICATOR, new GLib.Variant('as', [type, position]));
     }
 
-    iconSizeCombo() {
-        let combo = new Gtk.ComboBoxText();
-        combo.set_entry_text_column(0);
-
-        for (let l in ICON_SIZE_LIST) {
-            combo.append(l, ICON_SIZE_LIST[l]);
-        }
-        combo.set_active_id(this._settings.get_int(ICON_SIZE).toString());
-
-        combo.connect('changed', () => {
-            this._settings.set_int(ICON_SIZE, combo.get_active_id());
+    _createIconFileRow() {
+        const row = new Adw.ActionRow({ title: 'Change control button icon' });
+        const entry = new Gtk.Entry({
+            hexpand: true,
+            valign: Gtk.Align.CENTER,
+            text: this._settings.get_string(ICON_FILE),
+        });
+        entry.connect('changed', () => {
+            this._settings.set_string(ICON_FILE, entry.get_text());
         });
 
-        return combo;
-    }
-
-    addIconFile() {
-        let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 5,
-                                 margin_bottom: 5,
-                                 margin_start: 20,
-                                 margin_end: 20,
+        const browseButton = new Gtk.Button({
+            label: 'Browse',
+            valign: Gtk.Align.CENTER,
+        });
+        browseButton.connect('clicked', () => {
+            this._showFileChooser(entry);
         });
 
-        let setting_label = new Gtk.Label({  xalign: 0 });
-        setting_label.set_markup("Change control button icon");
-        this.setting_entry = new Gtk.Entry({ hexpand: true, margin_start: 20 });
-
-        this.setting_entry.set_text(this._settings.get_string(ICON_FILE));
-        this.setting_entry.connect('changed', (entry) => {
-            this._settings.set_string(ICON_FILE, entry.get_text()); });
-
-        this.fileChooseButton = new Gtk.Button({ margin_start: 5 });
-        this.fileChooseButton.set_label("Browse");
-        this.fileChooseButton.connect("clicked", this.showFileChooserDialog.bind(this));
-
-
-        hbox.append(setting_label);
-        hbox.append(this.setting_entry);
-        hbox.append(this.fileChooseButton);
-
-        return hbox;
-    }
-
-    showFileChooserDialog() {
-        let fileChooser = new Gtk.FileChooserDialog({ title: "Select File" });
-        fileChooser.set_transient_for(this.widget.get_root());
-        fileChooser.set_default_response(1);
-
-        let filter = new Gtk.FileFilter();
-        filter.add_pixbuf_formats();
-        fileChooser.filter = filter;
-
-        fileChooser.add_button("Open", Gtk.ResponseType.ACCEPT);
-
-        fileChooser.connect("response", (dialog, response) => {
-            if (response == Gtk.ResponseType.ACCEPT) {
-                let file = dialog.get_file().get_path()
-                if (file.length > 0)
-                    this.setting_entry.set_text(file);
-                fileChooser.destroy();
-            }
-        });
-
-        fileChooser.show();
-    }
-
-    addAppCustomer() {
-        let appCustomer = this._builder.get_object('app_customer');
-        let appListBox = this._builder.get_object('app_list_box');
-        let addButton = this._builder.get_object('add_app');
-        let deleteButton = this._builder.get_object('delete_app');
-
-
-        let appChooserWindow = this._builder.get_object('app_chooser_window');
-        addButton.connect('clicked', () => {
-            appChooserWindow.set_transient_for(this.widget.get_root());
-            appChooserWindow.show();
-        });
-
-
-        let appChooserWidget = this._builder.get_object('app_chooser_widget');
-        appChooserWidget.connect('application_selected', (actor, app) => {
-            appChooserWindow.hide()
-
-            let name = app.get_filename().split('/');
-            let id = name[name.length - 1];
-
-            let row = this.appRow(id);
-            if (row) {
-                if (this.addAppToList(id))
-                    appListBox.append(row);
-            }
-            appListBox.show();
-        });
-
-        let apps = (this._settings.get_string(APP_LIST)).split(';');
-        apps.forEach( app => {
-            let row = this.appRow(app);
-            if (row)
-                appListBox.append(row);
-        });
-        appListBox.show();
-
-        deleteButton.connect('clicked', () => {
-            if (!appListBox.get_activate_on_single_click())
-                return;
-            let row = appListBox.get_selected_row();
-            this.removeAppToList(row.get_first_child().app);
-            appListBox.remove(row);
-            appListBox.show();
-        });
-
-        return appCustomer;
-    }
-
-    removeAppToList(app) {
-        let apps = (this._settings.get_string(APP_LIST)).split(';');
-        let newApps = null;
-        for (let i in apps) {
-            if (apps[i] != app) {
-                if (!newApps)
-                    newApps = apps[i];
-                else
-                    newApps += ';' + apps[i];
-            }
-        }
-
-        if (newApps == null)
-            newApps = '';
-        this._settings.set_string(APP_LIST, newApps);
-    }
-
-    addAppToList(app) {
-        let apps = (this._settings.get_string(APP_LIST)).split(';');
-        for (let i in apps) {
-            if (apps[i] == app)
-                return false;
-        }
-        apps.push(app);
-        let newApps = null;
-        apps.forEach( app => {
-            if (!newApps)
-                newApps = app;
-            else
-                newApps += ';' + app;
-        });
-        this._settings.set_string(APP_LIST, newApps);
-
-        return true;
-    }
-
-    appRow(appId) {
-        let app = null;
-        let apps = Gio.AppInfo.get_all();
-        for (let i in apps) {
-           if (apps[i].get_id() == appId) {
-               app = apps[i];
-               break;
-           }
-        }
-        if (!app)
-            return null;
-
-        let row = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL });
-        let image = new Gtk.Image();
-        let icon = app.get_icon();
-        if (!icon)
-            icon = new Gio.ThemedIcon({ name: "application-x-executable" });
-        image.set_from_gicon(icon);
-        image.set_pixel_size(32);
-        let label = new Gtk.Label({ margin_start: 10 });
-        label.set_text(app.get_display_name());
-
-        row.append(image);
-        row.append(label);
-        row.app = appId;
+        row.add_suffix(entry);
+        row.add_suffix(browseButton);
 
         return row;
     }
 
-    addItemSwitch(string, key) {
-        let hbox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL,
-                                 margin_top: 5,
-                                 margin_bottom: 5,
-                                 margin_start: 20,
-                                 margin_end: 20,
-        });
-        let info = new Gtk.Label({ hexpand: true, xalign: 0 });
-        info.set_markup(string);
-        hbox.append(info);
+    _showFileChooser(entry) {
+        const filter = new Gtk.FileFilter();
+        filter.add_pixbuf_formats();
 
-        let button = new Gtk.Switch({ active: this._settings.get_boolean(key) });
-        button.connect('notify::active', (button) => { this._settings.set_boolean(key, button.active); });
-        hbox.append(button);
-        return hbox;
+        const dialog = new Gtk.FileDialog({
+            title: 'Select File',
+            modal: true,
+            default_filter: filter,
+        });
+
+        dialog.open(this._window, null, (source, result) => {
+            try {
+                const file = source.open_finish(result);
+                if (file)
+                    entry.set_text(file.get_path());
+            } catch {
+            }
+        });
     }
 
-    addBoldTextToBox(text, box) {
-        let txt = new Gtk.Label({xalign: 0,
-            margin_start: 20,
-            margin_end: 20,
-            margin_top: 20});
-        //txt.set_markup('<b>' + text + '</b>');
-        txt.set_markup(text);
-        txt.set_line_wrap(true);
-        box.append(txt);
+    _createApplicationsPage() {
+        const page = new Adw.PreferencesPage({
+            title: 'Applications',
+            icon_name: 'view-app-grid-symbolic',
+        });
+
+        const favoritesGroup = new Adw.PreferencesGroup();
+        this._addSwitchRow(favoritesGroup, 'Use system favorite applications', USE_FAVORITES);
+        page.add(favoritesGroup);
+
+        const appGroup = new Adw.PreferencesGroup({ title: 'User defined application list' });
+        const addButton = new Gtk.Button({
+            icon_name: 'list-add-symbolic',
+            valign: Gtk.Align.CENTER,
+            tooltip_text: 'Add application',
+        });
+        addButton.connect('clicked', () => {
+            this._showAppChooser(appGroup);
+        });
+        appGroup.header_suffix = addButton;
+        page.add(appGroup);
+
+        const apps = this._settings.get_string(APP_LIST).split(';');
+        apps.forEach(app => {
+            this._addAppRow(appGroup, app);
+        });
+
+        return page;
+    }
+
+    _showAppChooser(group) {
+        const dialog = new Gtk.AppChooserDialog({
+            transient_for: this._window,
+            modal: true,
+            content_type: 'application/x-executable',
+            heading: 'Select Application',
+        });
+
+        const appChooser = dialog.get_widget();
+        appChooser.show_all = true;
+        appChooser.show_recommended = false;
+
+        dialog.add_button('Add', Gtk.ResponseType.OK);
+        dialog.add_button('Cancel', Gtk.ResponseType.CANCEL);
+        dialog.connect('response', (dlg, response) => {
+            if (response === Gtk.ResponseType.OK) {
+                const app = dlg.get_app_info();
+                if (app)
+                    this._addSelectedApp(group, app);
+            }
+            dlg.destroy();
+        });
+
+        dialog.present();
+    }
+
+    _addSelectedApp(group, app) {
+        const id = app.get_id() ?? app.get_filename()?.split('/').pop() ?? null;
+        if (!id)
+            return;
+
+        if (!this._appendAppToSetting(id))
+            return;
+
+        this._addAppRow(group, id);
+    }
+
+    _appendAppToSetting(appId) {
+        const apps = this._settings.get_string(APP_LIST).split(';');
+        if (apps.includes(appId))
+            return false;
+
+        apps.push(appId);
+        this._settings.set_string(APP_LIST, apps.join(';'));
+        return true;
+    }
+
+    _removeAppFromList(appId) {
+        const apps = this._settings.get_string(APP_LIST).split(';');
+        this._settings.set_string(APP_LIST, apps.filter(app => app !== appId).join(';'));
+    }
+
+    _addAppRow(group, appId) {
+        const appInfo = this._findAppInfo(appId);
+        if (!appInfo)
+            return;
+
+        const row = new Adw.ActionRow({ title: appInfo.get_display_name() });
+
+        const image = new Gtk.Image({ pixel_size: 32 });
+        const icon = appInfo.get_icon() ?? new Gio.ThemedIcon({ name: 'application-x-executable' });
+        image.set_from_gicon(icon);
+        row.add_prefix(image);
+
+        const removeButton = new Gtk.Button({
+            icon_name: 'user-trash-symbolic',
+            has_frame: false,
+            valign: Gtk.Align.CENTER,
+            tooltip_text: 'Remove application',
+        });
+        removeButton.connect('clicked', () => {
+            this._removeAppFromList(appId);
+            group.remove(row);
+        });
+        row.add_suffix(removeButton);
+
+        group.add(row);
+    }
+
+    _findAppInfo(appId) {
+        return Gio.AppInfo.get_all().find(app => app.get_id() === appId) ?? null;
+    }
+
+    _createAboutPage() {
+        const page = new Adw.PreferencesPage({
+            title: 'About',
+            icon_name: 'help-about-symbolic',
+        });
+
+        const group = new Adw.PreferencesGroup();
+        group.add(new Adw.ActionRow({ title: 'Xiaoguang Wang' }));
+
+        const linkRow = new Adw.ActionRow({
+            title: 'GitHub',
+            subtitle: GITHUB_URL,
+            activatable: true,
+        });
+        const launcher = new Gtk.UriLauncher({ uri: GITHUB_URL });
+        linkRow.connect('activated', () => {
+            launcher.launch(this._window, null).catch(() => {});
+        });
+        group.add(linkRow);
+
+        page.add(group);
+
+        return page;
+    }
+
+    _addSwitchRow(group, title, key) {
+        const row = new Adw.SwitchRow({ title });
+        this._settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+        group.add(row);
+        return row;
+    }
+
+    _addComboRow(group, title, items, selected, callback) {
+        const row = new Adw.ComboRow({
+            title,
+            model: Gtk.StringList.new(items),
+        });
+        if (selected >= 0)
+            row.selected = selected;
+        row.connect('notify::selected', () => {
+            callback(row.selected);
+        });
+        group.add(row);
+        return row;
     }
 };
 
 export default class DictPrefs extends ExtensionPreferences {
-    getPreferencesWidget() {
-        let frame = new Frame(this.getSettings(), this.dir);
-        return frame.widget;
+    fillPreferencesWindow(window) {
+        const frame = new Frame(this.getSettings(), window);
+        frame.pages.forEach(page => window.add(page));
     }
 }
